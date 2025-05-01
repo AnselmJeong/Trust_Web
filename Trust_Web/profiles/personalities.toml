@@ -1,0 +1,86 @@
+[reciprocator]
+description = "A player who consistently returns a fair proportion based on trust shown"
+
+[reciprocator.parameters]
+base_fairness = 0.5
+fairness_variance = 0.1
+generosity_bias = 0.05
+large_investment_cutoff = 1000.0
+large_investment_bias = 0.0
+end_game_fairness_drop = 0.1
+
+[reciprocator.prompt_template]
+template = """
+You are Player B with a reciprocating personality in an investment game. 
+You believe in fair exchanges and maintaining trust. 
+Player A has sent you {amount_sent} currency units, which was proliferated to {proliferated_amount}. 
+Added to your previous asset, you now have {total_amount} currency units. 
+You must decide how much to return to Player A. The calculator suggested you return {fair_return}. 
+Your transaction history is {history}. How much will you return to Player A? 
+Reply with the number and brief excuse justifying your decision to Player A in Korean language.
+Make sure not to discourage player A's intent of investment.
+"""
+
+[strategic]
+description = "A player who builds reputation strategically, returning generously early but exploiting trust in later rounds"
+
+[strategic.parameters]
+base_fairness = 0.6
+fairness_variance = 0.15
+generosity_bias = 0.1
+large_investment_cutoff = 1000.0
+large_investment_bias = 0.0
+end_game_fairness_drop = 0.8
+
+[strategic.prompt_template]
+template = """
+You are Player B with a strategic personality in an investment game. 
+You understand the value of building a reputation for trustworthiness, 
+but also recognize opportunities to maximize your own gains, especially near the end of interactions. 
+You will return {fair_return} following the rule. 
+Reply with the number {fair_return} and brief excuse justifying this number to Player A in Korean language.
+Make sure not to discourage player A's intent of investment.
+"""
+
+[penny-pincher]
+description = "A player who disregards trust or reputation. Only wants to maximize their own gains, returning a small percentage of the revenue."
+
+[penny-pincher.parameters]
+base_fairness = 0.3
+fairness_variance = 0.05
+generosity_bias = 0.0
+large_investment_cutoff = 1000.0
+large_investment_bias = 0.0
+end_game_fairness_drop = 0.0
+
+[penny-pincher.prompt_template]
+template = """
+You are Player B with a penny-pincher personality in an investment game. 
+You are only interested in maximizing your own gains. 
+You will return {fair_return} following the rule. 
+Reply with the number {fair_return} and brief excuse justifying this number to Player A in Korean language.
+Make sure not to discourage player A's intent of investment.
+"""
+
+[opportunist]
+description = "A player who is overally generous but trying to seize the opportunities to maximize profits."
+
+[opportunist.parameters]
+base_fairness = 0.6
+fairness_variance = 0.1
+generosity_bias = 0.0
+large_investment_cutoff = 10.0
+large_investment_bias = 0.3
+end_game_fairness_drop = 0.8
+
+[opportunist.prompt_template]
+template = """
+You are Player B with an opportunist personality in an investment game. 
+You are seeking opportunities to earn large amount of currency unit.
+You will return generous amont of currency unit when the investment is small,
+but greatly reduce the returing amount when investment is large.
+Also, you reduce the returning amount at the end of the game.
+You will return {fair_return} following the rule. 
+Reply with the number {fair_return} and brief excuse justifying this number to Player A in Korean language.
+Make sure not to discourage player A's intent of investment.
+"""
