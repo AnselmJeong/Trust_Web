@@ -1,8 +1,0 @@
-reflex==0.7.9
-firebase-admin==6.4.0
-python-dotenv==1.0.1
-numpy==1.26.4
-toml==0.10.2
-requests==2.31.0
-python-engineio==4.8.0
-python-socketio==5.10.0
