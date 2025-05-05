@@ -127,7 +127,7 @@ def login_form() -> rx.Component:
                             rx.input(
                                 placeholder="you@example.com",
                                 on_change=GameState.set_user_email,
-                                type_="email",
+                                type="email",
                                 bg="white",
                                 border="1px solid #e5e7eb",
                                 p="2",
@@ -146,7 +146,7 @@ def login_form() -> rx.Component:
                             rx.input(
                                 placeholder="••••••••",
                                 on_change=GameState.set_password,
-                                type_="password",
+                                type="password",
                                 bg="white",
                                 border="1px solid #e5e7eb",
                                 p="2",
@@ -230,7 +230,7 @@ def login_form() -> rx.Component:
                             rx.input(
                                 placeholder="you@example.com",
                                 on_change=GameState.set_user_email,
-                                type_="email",
+                                type="email",
                                 bg="white",
                                 border="1px solid #e5e7eb",
                                 p="2",
@@ -249,7 +249,7 @@ def login_form() -> rx.Component:
                             rx.input(
                                 placeholder="••••••••",
                                 on_change=GameState.set_password,
-                                type_="password",
+                                type="password",
                                 bg="white",
                                 border="1px solid #e5e7eb",
                                 p="2",
@@ -268,7 +268,7 @@ def login_form() -> rx.Component:
                             rx.input(
                                 placeholder="••••••••",
                                 on_change=GameState.set_confirm_password,
-                                type_="password",
+                                type="password",
                                 bg="white",
                                 border="1px solid #e5e7eb",
                                 p="2",
@@ -571,7 +571,7 @@ def section_1() -> rx.Component:
                 rx.input(
                     placeholder=f"Enter amount (0 - {received})",
                     on_change=GameState.set_amount_to_return,
-                    type_="number",
+                    type="number",
                     style={
                         "width": "100%",
                         "padding": "12px",
@@ -752,7 +752,7 @@ def section_2() -> rx.Component:
         rx.input(
             placeholder=f"Enter amount (0 - {max_send})",
             on_change=GameState.set_amount_to_send,
-            type_="number",
+            type="number",
             id="amount_input_s2",
             style={
                 "width": "100%",
