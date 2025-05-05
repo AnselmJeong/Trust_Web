@@ -26,6 +26,7 @@ class GameState(rx.State):
     # Authentication state
     user_email: str = ""
     password: str = ""
+    confirm_password: str = ""
     is_authenticated: bool = False
     auth_error: str = ""
     user_id: str = ""
@@ -69,6 +70,11 @@ class GameState(rx.State):
         self.password = value
 
     @rx.event
+    def set_confirm_password(self, value: str) -> None:
+        """Set the confirm password."""
+        self.confirm_password = value
+
+    @rx.event
     def set_amount_to_return(self, value: str) -> None:
         """Set the amount to return from string input."""
         try:
@@ -76,7 +82,9 @@ class GameState(rx.State):
             if amount > 0 and amount <= self.received_amount:
                 self.amount_to_return = int(value)
             else:
-                raise ValueError("Please enter positive amount less than or equal to the amount you received")
+                raise ValueError(
+                    "Please enter positive amount less than or equal to the amount you received"
+                )
         except ValueError:
             raise ValueError("Please enter a valid integer value")
 
@@ -88,7 +96,9 @@ class GameState(rx.State):
             if amount > 0 and amount <= self.max_send_amount:
                 self.amount_to_send = int(value)
             else:
-                raise ValueError("Please enter positive amount less than or equal to half of your balance")
+                raise ValueError(
+                    "Please enter positive amount less than or equal to half of your balance"
+                )
         except ValueError:
             raise ValueError("Please enter a valid integer value")
 
@@ -96,7 +106,8 @@ class GameState(rx.State):
     @rx.event
     def simulate_player_a_decision(self) -> None:
         """Simulate Player A's decision for Section 1."""
-
+        print(f"initial_balance: {self.player_a_balance}")
+        print(f"max_send_amount: {self.max_send_amount}")
         self.amount_to_send = random.randint(1, self.max_send_amount)
 
     @rx.event
@@ -121,7 +132,6 @@ class GameState(rx.State):
             else:
                 self.current_page = 2  # Move to transition page
                 self.current_round = 1
-                self.select_player_b_profile()
 
         except ValueError:
             pass
@@ -130,6 +140,7 @@ class GameState(rx.State):
     def start_section_1(self) -> None:
         """Mark user as ready to start the experiment."""
         self.is_ready = True
+        self.player_a_balance = INITIAL_BALANCE
         self.current_page = 1  # Start Section 1 (Player B)
         self.current_round = 1
         self.simulate_player_a_decision()
@@ -154,7 +165,9 @@ class GameState(rx.State):
     @rx.event
     def select_player_b_profile(self) -> None:
         """Select the Player B profile for the current stage."""
-        self.player_b_personality, self.player_b_profile = self.shuffled_profiles[self.current_stage]
+        self.player_b_personality, self.player_b_profile = self.shuffled_profiles[
+            self.current_stage
+        ]
 
     @rx.event
     def main_algorithm(self) -> None:
@@ -308,8 +321,12 @@ class GameState(rx.State):
                 self.auth_error = "Please enter both email and password"
                 return
 
+            # Check if passwords match
+            if self.password != self.confirm_password:
+                self.auth_error = "Passwords do not match"
+                return
+
             user = create_user_with_email_and_password(self.user_email, self.password)
-            # The response contains 'localId' instead of 'uid'
             self.user_id = user.get("localId")
             self.is_authenticated = True
             self.auth_error = ""

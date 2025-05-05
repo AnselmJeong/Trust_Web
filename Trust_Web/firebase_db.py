@@ -16,7 +16,8 @@ load_dotenv()
 # Initialize Firestore client
 def init_firebase_client() -> firestore.Client:
     """Initialize and return Firestore client with credentials."""
-    credentials_path = Path(__file__).parent / "secret" / "trust-web.json"
+    credentials_path = Path(__file__).parent.parent / "secret" / "trustweb.json"
+    print(credentials_path)
 
     try:
         credentials = service_account.Credentials.from_service_account_file(credentials_path)
