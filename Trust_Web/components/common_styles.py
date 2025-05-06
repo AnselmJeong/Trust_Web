@@ -1,13 +1,4 @@
 import reflex as rx
-from Trust_Web.state import GameState
-from Trust_Web.components import (
-    login_form,
-    instructions,
-    section_1,
-    section_2,
-    section_transition,
-    final_page,
-)
 
 # Common Styles
 COLORS = {
@@ -92,33 +83,3 @@ def primary_button(text: str, **kwargs) -> rx.Component:
 def section_heading(text: str, **kwargs) -> rx.Component:
     """Section heading with consistent styling."""
     return rx.heading(text, **STYLES["heading"], **kwargs)
-
-
-def index() -> rx.Component:
-    """Main page component."""
-    return rx.cond(
-        GameState.is_authenticated,
-        rx.cond(
-            GameState.current_page == 0,
-            instructions(),
-            rx.cond(
-                GameState.current_page == 1,
-                section_1(),
-                rx.cond(
-                    GameState.current_page == 2,
-                    section_transition(),
-                    rx.cond(
-                        GameState.current_page == 3,
-                        section_2(),
-                        final_page(),
-                    ),
-                ),
-            ),
-        ),
-        login_form(),
-    )
-
-
-# Create the app
-app = rx.App()
-app.add_page(index)
