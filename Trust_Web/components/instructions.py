@@ -1,6 +1,6 @@
 import reflex as rx
-from Trust_Web.state import GameState
-from .common_styles import COLORS, STYLES, page_container, section_heading, primary_button
+from Trust_Web.trust_game_state import TrustGameState
+from .common_styles import COLORS, STYLES, page_container
 
 
 def instructions() -> rx.Component:
@@ -114,7 +114,7 @@ def instructions() -> rx.Component:
                     rx.icon(tag="arrow_right", size=18),
                     spacing="2",
                 ),
-                on_click=GameState.start_section_1,  # Or appropriate handler
+                on_click=TrustGameState.start_section_1,  # Or appropriate handler
                 style=STYLES["button"],
             ),
             justify="end",  # Align button to the right

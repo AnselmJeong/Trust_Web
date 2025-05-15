@@ -1,5 +1,5 @@
 import reflex as rx
-from Trust_Web.state import GameState
+from Trust_Web.trust_game_state import TrustGameState
 from Trust_Web.components import (
     login_form,
     instructions,
@@ -97,18 +97,18 @@ def section_heading(text: str, **kwargs) -> rx.Component:
 def index() -> rx.Component:
     """Main page component."""
     return rx.cond(
-        GameState.is_authenticated,
+        TrustGameState.is_authenticated,
         rx.cond(
-            GameState.current_page == 0,
+            TrustGameState.current_page == 0,
             instructions(),
             rx.cond(
-                GameState.current_page == 1,
+                TrustGameState.current_page == 1,
                 section_1(),
                 rx.cond(
-                    GameState.current_page == 2,
+                    TrustGameState.current_page == 2,
                     section_transition(),
                     rx.cond(
-                        GameState.current_page == 3,
+                        TrustGameState.current_page == 3,
                         section_2(),
                         final_page(),
                     ),

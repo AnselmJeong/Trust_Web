@@ -1,19 +1,21 @@
 import reflex as rx
-from Trust_Web.state import GameState, NUM_ROUNDS
+from Trust_Web.trust_game_state import TrustGameState, NUM_ROUNDS
 from .common_styles import COLORS, STYLES
 from .stage_transition import stage_transition
 
 
 def section_2() -> rx.Component:
     """Section 2 component styled similarly to section_1()."""
-    balance = GameState.player_a_balance
-    max_send = GameState.max_send_amount
-    round_str = GameState.round_str
+    balance = TrustGameState.player_a_balance
+    max_send = TrustGameState.max_send_amount
+    round_str = TrustGameState.round_str
     # Define the main vstack content first for clarity
     section_content = rx.vstack(
         # Header: Section title and round info
         rx.hstack(
-            rx.heading("\U0001f4c8 Section 2: You are Player A", size="6", style={"fontWeight": 600}),
+            rx.heading(
+                "\U0001f4c8 Section 2: You are Player A", size="6", style={"fontWeight": 600}
+            ),
             rx.spacer(),
             rx.text(round_str, color=COLORS["text_light"], size="4", style={"fontWeight": 500}),
             align="center",
@@ -21,7 +23,7 @@ def section_2() -> rx.Component:
         ),
         # Progress bar
         rx.progress(
-            value=GameState.current_round,
+            value=TrustGameState.current_round,
             max=NUM_ROUNDS,
             style={"width": "100%", "marginTop": "-8px", "marginBottom": "8px"},
         ),
@@ -72,7 +74,7 @@ def section_2() -> rx.Component:
         ),
         rx.input(
             placeholder=f"Enter amount (0 - {max_send})",
-            on_change=GameState.set_amount_to_send,
+            on_change=TrustGameState.set_amount_to_send,
             type="number",
             id="amount_input_s2",
             style={
@@ -88,7 +90,7 @@ def section_2() -> rx.Component:
         rx.button(
             "\u2714 Submit Decision",
             on_click=[
-                GameState.main_algorithm,
+                TrustGameState.main_algorithm,
                 rx.set_value("amount_input_s2", ""),
             ],
             style=STYLES["button"],
@@ -96,16 +98,16 @@ def section_2() -> rx.Component:
         # Player B's Response (conditional display might be good)
         rx.box(
             rx.cond(
-                GameState.amount_to_return > -1,
+                TrustGameState.amount_to_return > -1,
                 rx.vstack(
                     rx.divider(my="4"),
                     rx.text(
-                        f"\U0001f4e9 Message from Player B: {GameState.message_b}",
+                        f"\U0001f4e9 Message from Player B: {TrustGameState.message_b}",
                         size="3",
                         color=COLORS["text_light"],
                     ),
                     rx.text(
-                        f"\U0001f4b0 Amount returned from Player B: {GameState.amount_to_return}",
+                        f"\U0001f4b0 Amount returned from Player B: {TrustGameState.amount_to_return}",
                         size="4",
                         color="#2563eb",
                         weight="medium",
@@ -120,14 +122,14 @@ def section_2() -> rx.Component:
         # Profits summary
         rx.hstack(
             rx.text(
-                f"\U0001f4b5 Your Balance: {GameState.player_a_balance}",
+                f"\U0001f4b5 Your Balance: {TrustGameState.player_a_balance}",
                 color="#22c55e",
                 size="4",
                 style={"fontWeight": 500},
             ),
             rx.spacer(),
             rx.text(
-                f"\U0001f464 Player B's Balance: {GameState.player_b_balance}",
+                f"\U0001f464 Player B's Balance: {TrustGameState.player_b_balance}",
                 color="#3b82f6",
                 size="4",
                 style={"fontWeight": 500},
@@ -140,7 +142,7 @@ def section_2() -> rx.Component:
     )
 
     return rx.cond(
-        GameState.is_stage_transition,
+        TrustGameState.is_stage_transition,
         stage_transition(),
         # Use the same centered card structure as section_1
         rx.center(

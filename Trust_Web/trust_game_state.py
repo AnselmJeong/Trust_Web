@@ -7,7 +7,6 @@ from typing import List, Dict, Optional, Any, Tuple
 
 import reflex as rx
 from .firebase_config import sign_in_with_email_and_password, create_user_with_email_and_password
-
 from .firebase_db import save_experiment_data
 
 NUM_ROUNDS = 10
@@ -20,7 +19,7 @@ with open(PROFILES_PATH, "r") as f:
     PERSONALITY_PROFILES: Dict[str, Any] = toml.load(f)
 
 
-class GameState(rx.State):
+class TrustGameState(rx.State):
     """State for the trust game experiment."""
 
     # Authentication state
@@ -227,7 +226,7 @@ class GameState(rx.State):
             pass
 
     @rx.event
-    def calculate_player_b_return(self, amount_sent: int) -> int:
+    def calculate_player_b_return(self) -> int:
         """Calculate Player B's return amount based on profile."""
 
         if not self.player_b_profile:
@@ -236,16 +235,16 @@ class GameState(rx.State):
         params: Dict[str, float] = self.player_b_profile["parameters"]
         loc_value: float = params["base_fairness"] + params["generosity_bias"]
 
-        if amount_sent > params["large_investment_cutoff"]:
+        if self.amount_to_send > params["large_investment_cutoff"]:
             loc_value -= params["large_investment_bias"]
 
         base_return_rate: float = np.random.normal(loc_value, params["fairness_variance"])
-        base_return: float = (amount_sent * PROLIFERATION_FACTOR) * base_return_rate
+        base_return: float = self.received_amount * base_return_rate
 
         if self.current_round > NUM_ROUNDS * 0.8:
             base_return *= 1 - params["end_game_fairness_drop"]
 
-        max_return: int = amount_sent * PROLIFERATION_FACTOR
+        max_return: int = self.received_amount
         return min(max(0, round(base_return)), max_return)
 
     @rx.event

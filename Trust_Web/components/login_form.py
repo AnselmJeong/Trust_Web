@@ -1,5 +1,5 @@
 import reflex as rx
-from Trust_Web.state import GameState
+from Trust_Web.trust_game_state import TrustGameState
 from .common_styles import COLORS
 
 
@@ -40,7 +40,7 @@ def login_form() -> rx.Component:
                             ),
                             rx.input(
                                 placeholder="you@example.com",
-                                on_change=GameState.set_user_email,
+                                on_change=TrustGameState.set_user_email,
                                 type="email",
                                 bg="white",
                                 border="1px solid #e5e7eb",
@@ -59,7 +59,7 @@ def login_form() -> rx.Component:
                             ),
                             rx.input(
                                 placeholder="••••••••",
-                                on_change=GameState.set_password,
+                                on_change=TrustGameState.set_password,
                                 type="password",
                                 bg="white",
                                 border="1px solid #e5e7eb",
@@ -73,7 +73,7 @@ def login_form() -> rx.Component:
                             # Login Button
                             rx.button(
                                 "Login",
-                                on_click=GameState.login,
+                                on_click=TrustGameState.login,
                                 bg="#f97316",  # Orange color from image
                                 color="white",
                                 width="100%",
@@ -84,7 +84,13 @@ def login_form() -> rx.Component:
                                 mb="4",
                                 _hover={"bg": "#f85a05"},
                             ),
-                            rx.text(GameState.auth_error, color="red", font_size="sm", mt="-2", mb="2"),
+                            rx.text(
+                                TrustGameState.auth_error,
+                                color="red",
+                                font_size="sm",
+                                mt="-2",
+                                mb="2",
+                            ),
                             rx.hstack(
                                 rx.divider(border_color="#e5e7eb"),
                                 rx.text(
@@ -141,7 +147,7 @@ def login_form() -> rx.Component:
                             ),
                             rx.input(
                                 placeholder="you@example.com",
-                                on_change=GameState.set_user_email,
+                                on_change=TrustGameState.set_user_email,
                                 type="email",
                                 bg="white",
                                 border="1px solid #e5e7eb",
@@ -160,7 +166,7 @@ def login_form() -> rx.Component:
                             ),
                             rx.input(
                                 placeholder="••••••••",
-                                on_change=GameState.set_password,
+                                on_change=TrustGameState.set_password,
                                 type="password",
                                 bg="white",
                                 border="1px solid #e5e7eb",
@@ -179,7 +185,7 @@ def login_form() -> rx.Component:
                             ),
                             rx.input(
                                 placeholder="••••••••",
-                                on_change=GameState.set_confirm_password,
+                                on_change=TrustGameState.set_confirm_password,
                                 type="password",
                                 bg="white",
                                 border="1px solid #e5e7eb",
@@ -191,7 +197,7 @@ def login_form() -> rx.Component:
                             # Register Button
                             rx.button(
                                 "Register",
-                                on_click=GameState.register,
+                                on_click=TrustGameState.register,
                                 bg="#f97316",
                                 color="white",
                                 width="100%",
@@ -202,7 +208,13 @@ def login_form() -> rx.Component:
                                 mb="4",
                                 _hover={"bg": "#f85a05"},
                             ),
-                            rx.text(GameState.auth_error, color="red", font_size="sm", mt="-2", mb="2"),
+                            rx.text(
+                                TrustGameState.auth_error,
+                                color="red",
+                                font_size="sm",
+                                mt="-2",
+                                mb="2",
+                            ),
                             # Divider and Google Button (same as login)
                             rx.hstack(
                                 rx.divider(border_color="#e5e7eb"),

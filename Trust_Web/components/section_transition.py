@@ -1,5 +1,5 @@
 import reflex as rx
-from Trust_Web.state import GameState, NUM_ROUNDS
+from Trust_Web.trust_game_state import TrustGameState, NUM_ROUNDS
 from .common_styles import COLORS, page_container, section_heading, primary_button
 
 
@@ -43,7 +43,9 @@ def section_transition() -> rx.Component:
                     mb="1",
                 ),
                 rx.list_item("Your profit = Amount returned - Amount sent.", pl="1em", mb="1"),
-                rx.list_item("Player B's profit = (Amount Sent * 2) - Amount returned.", pl="1em", mb="1"),
+                rx.list_item(
+                    "Player B's profit = (Amount Sent * 2) - Amount returned.", pl="1em", mb="1"
+                ),
                 rx.list_item(f"The section consists of {NUM_ROUNDS} rounds.", pl="1em", mb="1"),
                 size="2",
                 color=COLORS["text_light"],
@@ -62,7 +64,7 @@ def section_transition() -> rx.Component:
                 rx.icon(tag="arrow_right", size=18),
                 spacing="2",
             ),
-            on_click=GameState.start_section_2,
+            on_click=TrustGameState.start_section_2,
         ),
         # Apply padding to this wrapper vstack
         padding="20px",

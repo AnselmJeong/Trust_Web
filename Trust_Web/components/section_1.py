@@ -1,13 +1,13 @@
 import reflex as rx
-from Trust_Web.state import GameState, NUM_ROUNDS
+from Trust_Web.trust_game_state import TrustGameState, NUM_ROUNDS
 from .common_styles import COLORS
 
 
 def section_1() -> rx.Component:
     """Section 1 component styled as in the attached image."""
-    sent = GameState.amount_to_send
-    received = GameState.received_amount
-    round_str = GameState.round_str
+    sent = TrustGameState.amount_to_send
+    received = TrustGameState.received_amount
+    round_str = TrustGameState.round_str
     return rx.center(
         rx.box(
             rx.vstack(
@@ -25,7 +25,7 @@ def section_1() -> rx.Component:
                 ),
                 # Progress bar
                 rx.progress(
-                    value=GameState.current_round,
+                    value=TrustGameState.current_round,
                     max=NUM_ROUNDS,
                     style={"width": "100%", "marginTop": "-8px", "marginBottom": "8px"},
                 ),
@@ -75,7 +75,7 @@ def section_1() -> rx.Component:
                 ),
                 rx.input(
                     placeholder=f"Enter amount (0 - {received})",
-                    on_change=GameState.set_amount_to_return,
+                    on_change=TrustGameState.set_amount_to_return,
                     type="number",
                     style={
                         "width": "100%",
@@ -89,7 +89,7 @@ def section_1() -> rx.Component:
                 ),
                 rx.button(
                     "\u2714 Submit Decision",
-                    on_click=GameState.submit_player_b_decision,
+                    on_click=TrustGameState.submit_player_b_decision,
                     style={
                         "width": "100%",
                         "background": "#f97316",
@@ -105,14 +105,14 @@ def section_1() -> rx.Component:
                 # Profits summary
                 rx.hstack(
                     rx.text(
-                        f"\U0001f4b5 Your Total Profit: {GameState.player_b_profit}",
+                        f"\U0001f4b5 Your Total Profit: {TrustGameState.player_b_profit}",
                         color="#22c55e",
                         size="4",
                         style={"fontWeight": 500},
                     ),
                     rx.spacer(),
                     rx.text(
-                        f"\U0001f4b0 Player A's Total Profit: {GameState.player_a_profit}",
+                        f"\U0001f4b0 Player A's Total Profit: {TrustGameState.player_a_profit}",
                         color="#3b82f6",
                         size="4",
                         style={"fontWeight": 500},
