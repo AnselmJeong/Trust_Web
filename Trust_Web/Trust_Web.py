@@ -3,6 +3,7 @@ from Trust_Web.trust_game_state import TrustGameState
 from Trust_Web.components import (
     login_form,
     instructions,
+    public_goods_game_component,
     section_1,
     section_2,
     section_transition,
@@ -103,14 +104,18 @@ def index() -> rx.Component:
             instructions(),
             rx.cond(
                 TrustGameState.current_page == 1,
-                section_1(),
+                public_goods_game_component(),
                 rx.cond(
                     TrustGameState.current_page == 2,
-                    section_transition(),
+                    section_1(),
                     rx.cond(
                         TrustGameState.current_page == 3,
-                        section_2(),
-                        final_page(),
+                        section_transition(),
+                        rx.cond(
+                            TrustGameState.current_page == 4,
+                            section_2(),
+                            final_page(),
+                        ),
                     ),
                 ),
             ),

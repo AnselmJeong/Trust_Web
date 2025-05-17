@@ -6,6 +6,7 @@ from .section_2 import section_2
 from .stage_transition import stage_transition
 from .section_transition import section_transition
 from .final_page import final_page
+from .public_goods import public_goods_game_component
 
 __all__ = [
     "COLORS",
@@ -20,4 +21,5 @@ __all__ = [
     "stage_transition",
     "section_transition",
     "final_page",
+    "public_goods_game_component",
 ]

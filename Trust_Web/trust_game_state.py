@@ -13,7 +13,7 @@ NUM_ROUNDS = 10
 PROLIFERATION_FACTOR = 3
 INITIAL_BALANCE = 10
 
-# Load personality profiles
+# Load personality profiles from toml file
 PROFILES_PATH: Path = Path(__file__).parent / "profiles" / "personalities.toml"
 with open(PROFILES_PATH, "r") as f:
     PERSONALITY_PROFILES: Dict[str, Any] = toml.load(f)
@@ -31,27 +31,47 @@ class TrustGameState(rx.State):
     user_id: str = ""
 
     # Game state
-    current_page: int = 0  # 0: Instructions, 1: Section 1 (Player B), 2: Transition, 3: Section 2 (Player A), 4: End
+    # current_page는 화면에 비춰질 page의 번호이다.
+    # 전체 session의 구성은 아래와 같이 이루어진다. 중간중간에 안내문이 들어가므로 page 번호는 아래와 일치하지 않는다.
+    # 1. 로그인 페이지
+    # 2. Demographic 기입 페이지
+    # 3. 대인관계 설문지
+    # 4. 공공재 게임 안내문
+    # 5. 공공재 게임
+    # 6. 신뢰 게임 안내
+    # 7. 신뢰 게임 section 1
+    # 8. 신뢰 게임 section 2
+    # 9. 종료
+
+    current_page: int = 0
+
+    # current_round는 현재 진행중인 라운드의 번호이다.
+    # 공공재, 신뢰 게임에서 한 상대와 총 10번의 round를 진행하게 된다.
     current_round: int = 1
+
+    # current_stage는 신뢰 게임 section 2에서 거래하고 상대의 번호이다.
+    # section 2에서 총 5명의 상대와 거래를 진행하게 된다.
     current_stage: int = 0  # 0-4: Stages in Section 2
     is_ready: bool = False
-    is_stage_transition: bool = False  # Flag for stage transition page
+    is_stage_transition: bool = False  # 거래 상대 교체 시 페이지 전환을 위한 플래그
 
     # Player B state
-    player_b_balance: int = 0
-    player_b_profit: float = 0
+    # balance는 section이나 stage가 바뀌면 초기화된다.
+    # 그러나 round가 바뀔 때는 이전 금액에 누적된다.
+    player_b_balance: int = 0  # 수탁자의 현재 잔액
+    player_b_current_round_profit: float = 0  # 수탁자가 현재 라운드에서 얻은 이익
 
     # Player A state
-    player_a_balance: int = 0
-    player_a_profit: float = 0
+    player_a_balance: int = 0  # 투자자의 현재 잔액
+    player_a_current_round_profit: float = 0  # 투자자가 현재 라운드에서 얻은 이익
 
     # Transaction data
-    amount_to_send: int = 0
-    amount_to_return: int = 0
-    message_b: str = ""
+    amount_to_send: int = 0  # 투자자(player_a)가 투자할 금액
+    amount_to_return: int = 0  # 수탁자(player_b)가 투자자에게 돌려줄 금액
+    message_b: str = ""  # 수탁자(player_b)가 투자자에게 보내는 메시지
 
     # Game history
-    round_history: List[Dict] = []  # History for current stage
+    round_history: List[Dict] = []  # 현재 stage에서 진행된 모든 round의 데이터를 저장하는 리스트
 
     # Player B profiles for section 2
     shuffled_profiles: List[Tuple[str, Dict]] = []  # List of (personality, profile) tuples
@@ -122,15 +142,21 @@ class TrustGameState(rx.State):
             # Update balances and profits
             self.player_b_balance += player_b_profit  # Update Player B's balance
             self.player_a_balance += player_a_profit
+            self.player_b_current_round_profit = player_b_profit
+            self.player_a_current_round_profit = player_a_profit
 
             # Move to next round or section
             if self.current_round < NUM_ROUNDS:
                 self.current_round += 1
                 self.simulate_player_a_decision()
                 self.amount_to_return = 0
+                self.player_a_current_round_profit = 0
+                self.player_b_current_round_profit = 0
             else:
                 self.current_page = 2  # Move to transition page
                 self.current_round = 1
+                self.player_a_current_round_profit = 0
+                self.player_b_current_round_profit = 0
 
         except ValueError:
             pass
@@ -140,8 +166,11 @@ class TrustGameState(rx.State):
         """Mark user as ready to start the experiment."""
         self.is_ready = True
         self.player_a_balance = INITIAL_BALANCE
+        self.player_b_balance = 0  # Player B starts with 0 balance in section 1
         self.current_page = 1  # Start Section 1 (Player B)
         self.current_round = 1
+        self.player_a_current_round_profit = 0
+        self.player_b_current_round_profit = 0
         self.simulate_player_a_decision()
 
     @rx.event
@@ -156,9 +185,14 @@ class TrustGameState(rx.State):
         self.current_stage = 0
         self.current_round = 1
         self.player_a_balance = INITIAL_BALANCE
+        self.player_b_balance = (
+            0  # Player B's balance for this AI is reset/not tracked globally here
+        )
         self.amount_to_send = 0
         self.amount_to_return = 0
         self.current_page = 3  # Move to Section 2 (Player A)
+        self.player_a_current_round_profit = 0
+        self.player_b_current_round_profit = 0
         self.select_player_b_profile()
 
     @rx.event
@@ -190,7 +224,11 @@ class TrustGameState(rx.State):
 
             # Update balances and profits
             self.player_a_balance += player_a_profit
-            self.player_b_balance += player_b_profit
+            self.player_b_balance += (
+                player_b_profit  # This AI Player B's balance accumulates per stage
+            )
+            self.player_a_current_round_profit = player_a_profit
+            self.player_b_current_round_profit = player_b_profit
 
             # Record round
             round_data: Dict[str, Any] = {
@@ -200,8 +238,8 @@ class TrustGameState(rx.State):
                 "personality": self.player_b_personality,
                 "amount_sent": self.amount_to_send,
                 "amount_returned": self.amount_to_return,
-                "human_profit": player_a_profit,
-                "ai_profit": player_b_profit,
+                "player_a_current_round_profit": player_a_profit,
+                "player_b_current_round_profit": player_b_profit,
                 "ai_message": self.message_b,
                 "timestamp": datetime.datetime.now().isoformat(),
             }
@@ -212,6 +250,8 @@ class TrustGameState(rx.State):
             if self.current_round < NUM_ROUNDS:
                 self.current_round += 1
                 self.amount_to_send = 0
+                self.player_a_current_round_profit = 0
+                self.player_b_current_round_profit = 0
             else:
                 # Move to next stage
                 self.current_stage += 1
@@ -221,6 +261,9 @@ class TrustGameState(rx.State):
                 else:
                     # Show stage transition page
                     self.is_stage_transition = True
+                # Reset profits for new stage/end of game
+                self.player_a_current_round_profit = 0
+                self.player_b_current_round_profit = 0
 
         except ValueError:
             pass
@@ -253,6 +296,9 @@ class TrustGameState(rx.State):
         self.is_stage_transition = False
         self.current_round = 1
         self.amount_to_send = 0
+        self.player_a_current_round_profit = 0
+        self.player_b_current_round_profit = 0
+        self.player_b_balance = 0  # Reset AI player B's balance for the new stage
         self.round_history = []  # Initialize history for new stage
         self.select_player_b_profile()
 
@@ -270,8 +316,8 @@ class TrustGameState(rx.State):
 
         self.player_a_balance = INITIAL_BALANCE
         self.player_b_balance = 0
-        self.player_a_profit = 0
-        self.player_b_profit = 0
+        self.player_a_current_round_profit = 0
+        self.player_b_current_round_profit = 0
 
         self.round_history = []
         self.shuffled_profiles = []

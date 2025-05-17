@@ -105,14 +105,14 @@ def section_1() -> rx.Component:
                 # Profits summary
                 rx.hstack(
                     rx.text(
-                        f"\U0001f4b5 Your Total Profit: {TrustGameState.player_b_profit}",
+                        f"\U0001f4b5 Your Profit: {TrustGameState.player_b_current_round_profit}",
                         color="#22c55e",
                         size="4",
                         style={"fontWeight": 500},
                     ),
                     rx.spacer(),
                     rx.text(
-                        f"\U0001f4b0 Player A's Total Profit: {TrustGameState.player_a_profit}",
+                        f"\U0001f4b0 Player A's Profit: {TrustGameState.player_a_current_round_profit}",
                         color="#3b82f6",
                         size="4",
                         style={"fontWeight": 500},
