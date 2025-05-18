@@ -59,7 +59,7 @@ def save_experiment_data(
         data["timestamp"] = firestore.SERVER_TIMESTAMP
 
         if "user_email" not in data:
-            print("Warning: 'user_email' not found in data being saved to Firestore.")
+            print("Warning: 'user_email' not found in data being saved to Firestore for demographics or questionnaire.")
 
         if doc_id:
             doc_ref = target_collection.document(doc_id)
@@ -209,3 +209,42 @@ def get_experiment_statistics() -> Dict[str, Any]:
     except Exception as e:
         print(f"Error fetching experiment statistics: {e}")
         raise
+
+
+def get_user_demographics_data(user_local_id: str) -> Optional[Dict[str, Any]]:
+    """Fetches the most recent demographic data for a user.
+
+    Args:
+        user_local_id: The Firebase user ID (localId) to filter by.
+
+    Returns:
+        A dictionary containing the demographic data and its 'doc_id', 
+        or None if no data found or an error occurs.
+    """
+    try:
+        if not user_local_id:
+            print("User local ID not provided, cannot fetch demographic data.")
+            return None
+
+        target_collection = db.collection(COLLECTION_NAME)
+        query = (
+            target_collection.where(
+                filter=firestore.FieldFilter("user_id_local", "==", user_local_id)
+            )
+            .where(filter=firestore.FieldFilter("type", "==", "demographics_data"))
+            .order_by("timestamp", direction=firestore.Query.DESCENDING)
+            .limit(1)  # Get only the most recent document
+        )
+
+        docs = query.stream()
+        for doc in docs: # Should be at most one due to limit(1)
+            if doc.exists:
+                data = doc.to_dict()
+                print(f"Fetched demographic data for user {user_local_id}, doc_id: {doc.id}")
+                return {"doc_id": doc.id, "data": data}
+        
+        print(f"No demographic data found for user {user_local_id}.")
+        return None
+    except Exception as e:
+        print(f"Error fetching demographic data for user {user_local_id}: {e}")
+        return None

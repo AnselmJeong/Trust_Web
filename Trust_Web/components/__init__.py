@@ -8,6 +8,7 @@ from .section_transition import section_transition
 from .final_page import final_page
 from .public_goods import public_goods_game_component
 from .questionnaire import questionnaire_ui_component
+from .demography import demography_form
 
 __all__ = [
     "COLORS",
@@ -24,4 +25,5 @@ __all__ = [
     "final_page",
     "public_goods_game_component",
     "questionnaire_ui_component",
+    "demography_form",
 ]

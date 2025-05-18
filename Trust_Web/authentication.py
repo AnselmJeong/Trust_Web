@@ -1,5 +1,8 @@
 import reflex as rx
 from .firebase_config import sign_in_with_email_and_password, create_user_with_email_and_password
+from .questionnaire_state import QuestionnaireState
+from .demographic_state import DemographicState
+from .trust_game_state import TrustGameState
 
 # from .questionnaire_state import QuestionnaireState # Removed
 # from .trust_game_state import TrustGameState  # Needed for TrustGameState.reset_game_state event # Removed
@@ -34,8 +37,6 @@ class AuthState(rx.State):
     @rx.event
     def login(self) -> None:
         """Handle user login using Firebase."""
-        from .questionnaire_state import QuestionnaireState  # Added import here
-
         try:
             if not self.user_email or not self.password:
                 self.auth_error = "Please enter both email and password"
@@ -61,7 +62,8 @@ class AuthState(rx.State):
 
             return [
                 QuestionnaireState.set_user_identity(self.user_id, self.user_email),
-                rx.redirect("/app/questionnaire"),
+                DemographicState.set_user_identity(self.user_id, self.user_email),
+                rx.redirect("/app/demography"),
             ]
         except Exception as e:
             self.auth_error = str(e)
@@ -70,8 +72,6 @@ class AuthState(rx.State):
     @rx.event
     def register(self) -> None:
         """Handle user registration using Firebase."""
-        from .questionnaire_state import QuestionnaireState  # Added import here
-
         try:
             if not self.user_email or not self.password:
                 self.auth_error = "Please enter both email and password"
@@ -101,7 +101,8 @@ class AuthState(rx.State):
 
             return [
                 QuestionnaireState.set_user_identity(self.user_id, self.user_email),
-                rx.redirect("/app/questionnaire"),
+                DemographicState.set_user_identity(self.user_id, self.user_email),
+                rx.redirect("/app/demography"),
             ]
         except Exception as e:
             self.auth_error = str(e)
@@ -110,8 +111,6 @@ class AuthState(rx.State):
     @rx.event
     def logout(self) -> None:
         """Handle user logout."""
-        from .trust_game_state import TrustGameState  # Added import here
-
         prev_user_id = self.user_id
         prev_auth_state = self.is_authenticated
 
@@ -136,7 +135,7 @@ class AuthState(rx.State):
         """Checks auth on index page load and redirects if necessary."""
         print(f"[AUTH_STATE-INDEX_CHECK] Auth: {self.is_authenticated}")
         if self.is_authenticated:
-            return rx.redirect("/app/questionnaire")
+            return rx.redirect("/app/demography")
         return None
 
     @rx.event

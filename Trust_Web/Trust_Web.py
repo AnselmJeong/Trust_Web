@@ -12,6 +12,7 @@ from Trust_Web.components import (
     stage_transition,
     final_page,
     questionnaire_ui_component,
+    demography_form,
 )
 from Trust_Web.layout import layout
 
@@ -125,37 +126,41 @@ def app_page():
 
     # Map page_id to the appropriate component
     content = rx.cond(
-        page_id == "questionnaire",
-        rx.center(questionnaire_ui_component(), width="100%"),
+        page_id == "demography",
+        rx.center(demography_form(), width="100%"),
         rx.cond(
-            page_id == "instructions",
-            instructions(),
+            page_id == "questionnaire",
+            rx.center(questionnaire_ui_component(), width="100%"),
             rx.cond(
-                page_id == "public-goods",
-                public_goods_game_component(),
+                page_id == "instructions",
+                instructions(),
                 rx.cond(
-                    page_id == "section1",
-                    section_1(),
+                    page_id == "public-goods",
+                    public_goods_game_component(),
                     rx.cond(
-                        page_id == "section-transition",
-                        section_transition(),
+                        page_id == "section1",
+                        section_1(),
                         rx.cond(
-                            page_id == "section2",
-                            section_2(),
+                            page_id == "section-transition",
+                            section_transition(),
                             rx.cond(
-                                page_id == "stage-transition",
-                                stage_transition(),
+                                page_id == "section2",
+                                section_2(),
                                 rx.cond(
-                                    page_id == "final",
-                                    final_page(),
-                                    rx.heading(f"Unknown page: {page_id}", size="4"),
+                                    page_id == "stage-transition",
+                                    stage_transition(),
+                                    rx.cond(
+                                        page_id == "final",
+                                        final_page(),
+                                        rx.heading(f"Unknown page: {page_id}", size="4"),
+                                    ),
                                 ),
                             ),
                         ),
                     ),
                 ),
             ),
-        ),
+        )
     )
 
     # Apply the layout to the content

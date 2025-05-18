@@ -23,7 +23,7 @@ def layout(content: rx.Component) -> rx.Component:
                         rx.icon("pencil"),
                         rx.text("Demographic"),
                     ),
-                    href="/app/demographic",
+                    href="/app/demography",
                     color="#333",
                     padding="0.5em 1em",
                     border_radius="md",

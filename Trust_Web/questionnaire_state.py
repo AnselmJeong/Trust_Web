@@ -286,6 +286,8 @@ class QuestionnaireState(rx.State):
                 f"[QUESTIONNAIRE_STATE] Submitting {current_q_name}. User: {self.user_id}. Doc ID to update: {doc_id_to_update}"
             )
 
+            print(f"[QUESTIONNAIRE_STATE] Data being sent to Firebase: {data_to_save}")
+
             save_experiment_data(self.user_id, data_to_save, doc_id=doc_id_to_update)
             self.error_message = ""  # Clear error on success
 
