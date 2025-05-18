@@ -67,6 +67,20 @@ STYLES = {
 }
 
 
+# Page component mapping dictionary
+PAGE_COMPONENT_MAPPING = {
+    "demography": rx.center(demography_form(), width="100%"),
+    "questionnaire": rx.center(questionnaire_ui_component(), width="100%"),
+    "instructions": instructions(),
+    "public-goods": public_goods_game_component(),
+    "section1": section_1(),
+    "section-transition": section_transition(),
+    "section2": section_2(),
+    "stage-transition": stage_transition(),
+    "final": final_page(),
+}
+
+
 def page_container(*children, **kwargs) -> rx.Component:
     """Common container for all pages."""
     container_style = STYLES["page_container"].copy()
@@ -111,61 +125,25 @@ def login_page() -> rx.Component:
 @rx.page(route="/app/[page_id]", on_load=AuthState.on_load_app_page_check)
 def app_page():
     """Dynamic app page that shows different content based on page_id."""
-    page_id = AuthState.router.page.params.page_id
+    current_page_id = AuthState.router.page.params.get("page_id", "") # Use .get for safety
 
-    # Logging for app_page
     print(
-        f"[APP_PAGE] Loading. User Auth: {AuthState.is_authenticated}, User ID: {AuthState.user_id}"
+        f"[APP_PAGE] Loading. Page ID: {current_page_id}, User Auth: {AuthState.is_authenticated}, User ID: {AuthState.user_id}"
     )
 
-    # auth_check = rx.cond(  # We will rely on on_load for this
-    #     ~TrustGameState.is_authenticated | (TrustGameState.user_id == ""),
-    #     rx.script("window.location.href = '/'"),
-    #     None,
-    # )
-
-    # Map page_id to the appropriate component
-    content = rx.cond(
-        page_id == "demography",
-        rx.center(demography_form(), width="100%"),
-        rx.cond(
-            page_id == "questionnaire",
-            rx.center(questionnaire_ui_component(), width="100%"),
-            rx.cond(
-                page_id == "instructions",
-                instructions(),
-                rx.cond(
-                    page_id == "public-goods",
-                    public_goods_game_component(),
-                    rx.cond(
-                        page_id == "section1",
-                        section_1(),
-                        rx.cond(
-                            page_id == "section-transition",
-                            section_transition(),
-                            rx.cond(
-                                page_id == "section2",
-                                section_2(),
-                                rx.cond(
-                                    page_id == "stage-transition",
-                                    stage_transition(),
-                                    rx.cond(
-                                        page_id == "final",
-                                        final_page(),
-                                        rx.heading(f"Unknown page: {page_id}", size="4"),
-                                    ),
-                                ),
-                            ),
-                        ),
-                    ),
-                ),
-            ),
-        )
+    # Create a list of (value, component) tuples for rx.match
+    match_cases = [
+        (page_name, component_func) 
+        for page_name, component_func in PAGE_COMPONENT_MAPPING.items()
+    ]
+    
+    content = rx.match(
+        current_page_id, 
+        *match_cases, # Unpack the list of tuples
+        rx.heading(rx.text(f"Unknown page: {current_page_id}"), size="4") # Default case
     )
 
-    # Apply the layout to the content
     return rx.fragment(
-        # auth_check, # Removed as on_load should handle this
         layout(content),
     )
 
@@ -174,17 +152,8 @@ def app_page():
 @rx.page(route="/", on_load=AuthState.on_load_index_page_check)
 def index():
     """Root page that shows login or redirects to app if authenticated."""
-    # Logging for index page
     print(f"[INDEX_PAGE] Loading. User Auth: {AuthState.is_authenticated}")
-
-    # redirect_if_authenticated = rx.cond( # We will rely on on_load for this
-    #     TrustGameState.is_authenticated,
-    #     rx.script("window.location.href = '/app/questionnaire'"),
-    #     None,
-    # )
-
     return rx.fragment(
-        # redirect_if_authenticated, # Removed as on_load should handle this
         login_page(),
     )
 
