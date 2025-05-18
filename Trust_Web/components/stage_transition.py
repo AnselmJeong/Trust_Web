@@ -20,7 +20,7 @@ def stage_transition() -> rx.Component:
                 color=COLORS["text_light"],
             ),
             rx.text(
-                f"\U0001f4b5 Your total profit so far: {TrustGameState.player_a_profit}",
+                f"\U0001f4b5 Your total profit so far: {TrustGameState.player_a_total_profit_in_section2}",
                 size="3",
                 color=COLORS["text_light"],
             ),

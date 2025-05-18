@@ -1,5 +1,7 @@
 import reflex as rx
 from Trust_Web.trust_game_state import TrustGameState
+from Trust_Web.questionnaire_state import QuestionnaireState
+from Trust_Web.authentication import AuthState
 from Trust_Web.components import (
     login_form,
     instructions,
@@ -7,8 +9,11 @@ from Trust_Web.components import (
     section_1,
     section_2,
     section_transition,
+    stage_transition,
     final_page,
+    questionnaire_ui_component,
 )
+from Trust_Web.layout import layout
 
 # Common Styles
 COLORS = {
@@ -95,35 +100,89 @@ def section_heading(text: str, **kwargs) -> rx.Component:
     return rx.heading(text, **STYLES["heading"], **kwargs)
 
 
-def index() -> rx.Component:
-    """Main page component."""
-    return rx.cond(
-        TrustGameState.is_authenticated,
+# The login page (shown when not authenticated)
+def login_page() -> rx.Component:
+    """Login page without layout."""
+    return login_form()
+
+
+# The main app content with layout
+@rx.page(route="/app/[page_id]", on_load=AuthState.on_load_app_page_check)
+def app_page():
+    """Dynamic app page that shows different content based on page_id."""
+    page_id = AuthState.router.page.params.page_id
+
+    # Logging for app_page
+    print(
+        f"[APP_PAGE] Loading. User Auth: {AuthState.is_authenticated}, User ID: {AuthState.user_id}"
+    )
+
+    # auth_check = rx.cond(  # We will rely on on_load for this
+    #     ~TrustGameState.is_authenticated | (TrustGameState.user_id == ""),
+    #     rx.script("window.location.href = '/'"),
+    #     None,
+    # )
+
+    # Map page_id to the appropriate component
+    content = rx.cond(
+        page_id == "questionnaire",
+        rx.center(questionnaire_ui_component(), width="100%"),
         rx.cond(
-            TrustGameState.current_page == 0,
+            page_id == "instructions",
             instructions(),
             rx.cond(
-                TrustGameState.current_page == 1,
+                page_id == "public-goods",
                 public_goods_game_component(),
                 rx.cond(
-                    TrustGameState.current_page == 2,
+                    page_id == "section1",
                     section_1(),
                     rx.cond(
-                        TrustGameState.current_page == 3,
+                        page_id == "section-transition",
                         section_transition(),
                         rx.cond(
-                            TrustGameState.current_page == 4,
+                            page_id == "section2",
                             section_2(),
-                            final_page(),
+                            rx.cond(
+                                page_id == "stage-transition",
+                                stage_transition(),
+                                rx.cond(
+                                    page_id == "final",
+                                    final_page(),
+                                    rx.heading(f"Unknown page: {page_id}", size="4"),
+                                ),
+                            ),
                         ),
                     ),
                 ),
             ),
         ),
-        login_form(),
+    )
+
+    # Apply the layout to the content
+    return rx.fragment(
+        # auth_check, # Removed as on_load should handle this
+        layout(content),
+    )
+
+
+# Root page for login and redirection
+@rx.page(route="/", on_load=AuthState.on_load_index_page_check)
+def index():
+    """Root page that shows login or redirects to app if authenticated."""
+    # Logging for index page
+    print(f"[INDEX_PAGE] Loading. User Auth: {AuthState.is_authenticated}")
+
+    # redirect_if_authenticated = rx.cond( # We will rely on on_load for this
+    #     TrustGameState.is_authenticated,
+    #     rx.script("window.location.href = '/app/questionnaire'"),
+    #     None,
+    # )
+
+    return rx.fragment(
+        # redirect_if_authenticated, # Removed as on_load should handle this
+        login_page(),
     )
 
 
 # Create the app
 app = rx.App()
-app.add_page(index)

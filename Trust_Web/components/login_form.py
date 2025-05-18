@@ -1,293 +1,170 @@
 import reflex as rx
+from reflex.vars import Var
+from reflex.event import EventSpec
 from Trust_Web.trust_game_state import TrustGameState
-from .common_styles import COLORS
+from .common_styles import COLORS, STYLES
+from ..authentication import AuthState
+
+# Styling constants (assuming they are defined elsewhere or replace with actual styles)
+PRIMARY_COLOR = "#f97316"
+PRIMARY_DARK_COLOR = "#f85a05"
+WHITE_COLOR = "white"
+BORDER_COLOR = "#e5e7eb"
+TEXT_LIGHT_COLOR = "#6b7280"
+
+# Common input style
+input_style = {
+    "bg": WHITE_COLOR,
+    "border": f"1px solid {BORDER_COLOR}",
+    "p": "2",
+    "border_radius": "md",
+    "mb": "4",
+    "width": "100%",
+}
+
+# Common button style
+button_style = {
+    "bg": PRIMARY_COLOR,
+    "color": WHITE_COLOR,
+    "font_weight": 600,
+    "font_size": "18px",
+    "padding": "14px 32px",
+    "border_radius": "md",
+    "width": "100%",
+    "_hover": {"bg": PRIMARY_DARK_COLOR},
+}
+
+# Define specific styles for login_form if not fully covered by common_styles
+login_form_input_style = {
+    **STYLES.get("input", {}),  # Start with common input style
+    "mb": "4",  # Override or add specific margin
+}
+
+login_form_button_style = {
+    **STYLES.get("button", {}),
+    "font_size": "md",  # Example override
+    "mb": "4",
+}
+
+
+def auth_input(
+    placeholder: str, value: Var[str], on_change: EventSpec, type: str = "text"
+) -> rx.Component:
+    """Reusable input field for authentication forms."""
+    return rx.input(
+        placeholder=placeholder,
+        value=value,
+        on_change=on_change,
+        type=type,
+        style=input_style,
+    )
+
+
+def auth_button(text: str, on_click: EventSpec) -> rx.Component:
+    """Reusable button for authentication forms."""
+    return rx.button(text, on_click=on_click, style=button_style)
 
 
 def login_form() -> rx.Component:
-    """Login form component using rx.tabs for Login/Register."""
+    """Login and registration form component."""
     return rx.box(
-        # Top bar branding
-        rx.box(
-            rx.text("TrustWeb", color="#0ea5e9", font_weight="bold", font_size="xl"),
-            bg="#f3f4f6",
-            width="100%",
-            p="4",
-            border_bottom="1px solid #e5e7eb",
-        ),
-        # Centered content area
-        rx.center(
-            rx.box(
-                # Using rx.tabs for the Login/Register section
-                rx.tabs.root(
-                    rx.tabs.list(
-                        rx.tabs.trigger("Login", value="login"),
-                        rx.tabs.trigger("Register", value="register"),
-                        width="100%",
-                        justify="center",
-                        border_bottom="1px solid #e5e7eb",
-                    ),
-                    # Login Tab Content
-                    rx.tabs.content(
-                        rx.vstack(
-                            rx.heading("Login", size="5", mb="4", mt="6"),
-                            # Email Field
-                            rx.text(
-                                "Email",
-                                color="#4b5563",
-                                font_size="sm",
-                                mb="1",
-                                align_self="flex-start",
-                            ),
-                            rx.input(
-                                placeholder="you@example.com",
-                                on_change=TrustGameState.set_user_email,
-                                type="email",
-                                bg="white",
-                                border="1px solid #e5e7eb",
-                                p="2",
-                                border_radius="md",
-                                mb="3",
-                                width="100%",
-                            ),
-                            # Password Field
-                            rx.text(
-                                "Password",
-                                color="#4b5563",
-                                font_size="sm",
-                                mb="1",
-                                align_self="flex-start",
-                            ),
-                            rx.input(
-                                placeholder="••••••••",
-                                on_change=TrustGameState.set_password,
-                                type="password",
-                                bg="white",
-                                border="1px solid #e5e7eb",
-                                p="2",
-                                border_radius="md",
-                                mb="4",
-                                width="100%",
-                            ),
-                            # Spacer to align Login button with Register button
-                            rx.box(height="68px"),
-                            # Login Button
-                            rx.button(
-                                "Login",
-                                on_click=TrustGameState.login,
-                                bg="#f97316",  # Orange color from image
-                                color="white",
-                                width="100%",
-                                p="3",
-                                border_radius="md",
-                                font_weight="bold",
-                                font_size="md",
-                                mb="4",
-                                _hover={"bg": "#f85a05"},
-                            ),
-                            rx.text(
-                                TrustGameState.auth_error,
-                                color="red",
-                                font_size="sm",
-                                mt="-2",
-                                mb="2",
-                            ),
-                            rx.hstack(
-                                rx.divider(border_color="#e5e7eb"),
-                                rx.text(
-                                    "OR CONTINUE WITH",
-                                    color="#6b7280",
-                                    font_size="xs",
-                                    white_space="nowrap",
-                                    px="2",
-                                ),
-                                rx.divider(border_color="#e5e7eb"),
-                                width="100%",
-                                align_items="center",
-                                my="2",
-                            ),
-                            rx.button(
-                                rx.hstack(
-                                    rx.image(
-                                        src="/google-icon.svg",
-                                        width="1.25em",
-                                        height="1.25em",
-                                    ),
-                                    rx.text("Google"),
-                                    spacing="2",
-                                    align_items="center",
-                                ),
-                                bg="white",
-                                border="1px solid #e5e7eb",
-                                width="100%",
-                                p="3",
-                                border_radius="md",
-                                color="black",
-                                font_weight="medium",
-                            ),
-                            spacing="3",
-                            width="100%",
-                            padding="20px",
-                            align_items="stretch",
-                            min_height="450px",
-                        ),
-                        value="login",
-                        pt="4",
-                    ),
-                    # Register Tab Content
-                    rx.tabs.content(
-                        rx.vstack(
-                            rx.heading("Register", size="5", mb="4", mt="6"),
-                            # Email Field
-                            rx.text(
-                                "Email",
-                                color="#4b5563",
-                                font_size="sm",
-                                mb="1",
-                                align_self="flex-start",
-                            ),
-                            rx.input(
-                                placeholder="you@example.com",
-                                on_change=TrustGameState.set_user_email,
-                                type="email",
-                                bg="white",
-                                border="1px solid #e5e7eb",
-                                p="2",
-                                border_radius="md",
-                                mb="3",
-                                width="100%",
-                            ),
-                            # Password Field
-                            rx.text(
-                                "Password",
-                                color="#4b5563",
-                                font_size="sm",
-                                mb="1",
-                                align_self="flex-start",
-                            ),
-                            rx.input(
-                                placeholder="••••••••",
-                                on_change=TrustGameState.set_password,
-                                type="password",
-                                bg="white",
-                                border="1px solid #e5e7eb",
-                                p="2",
-                                border_radius="md",
-                                mb="3",
-                                width="100%",
-                            ),
-                            # Confirm Password Field
-                            rx.text(
-                                "Confirm Password",
-                                color="#4b5563",
-                                font_size="sm",
-                                mb="1",
-                                align_self="flex-start",
-                            ),
-                            rx.input(
-                                placeholder="••••••••",
-                                on_change=TrustGameState.set_confirm_password,
-                                type="password",
-                                bg="white",
-                                border="1px solid #e5e7eb",
-                                p="2",
-                                border_radius="md",
-                                mb="4",
-                                width="100%",
-                            ),
-                            # Register Button
-                            rx.button(
-                                "Register",
-                                on_click=TrustGameState.register,
-                                bg="#f97316",
-                                color="white",
-                                width="100%",
-                                p="3",
-                                border_radius="md",
-                                font_weight="bold",
-                                font_size="md",
-                                mb="4",
-                                _hover={"bg": "#f85a05"},
-                            ),
-                            rx.text(
-                                TrustGameState.auth_error,
-                                color="red",
-                                font_size="sm",
-                                mt="-2",
-                                mb="2",
-                            ),
-                            # Divider and Google Button (same as login)
-                            rx.hstack(
-                                rx.divider(border_color="#e5e7eb"),
-                                rx.text(
-                                    "OR CONTINUE WITH",
-                                    color="#6b7280",
-                                    font_size="xs",
-                                    white_space="nowrap",
-                                    px="2",
-                                ),
-                                rx.divider(border_color="#e5e7eb"),
-                                width="100%",
-                                align_items="center",
-                                my="2",
-                            ),
-                            rx.button(
-                                rx.hstack(
-                                    rx.image(
-                                        src="/google-icon.svg",
-                                        width="1.25em",
-                                        height="1.25em",
-                                    ),
-                                    rx.text("Google"),
-                                    spacing="2",
-                                    align_items="center",
-                                ),
-                                bg="white",
-                                border="1px solid #e5e7eb",
-                                width="100%",
-                                p="3",
-                                border_radius="md",
-                                color="black",
-                                font_weight="medium",
-                            ),
-                            spacing="3",
-                            width="100%",
-                            padding="20px",
-                            align_items="stretch",
-                            min_height="450px",
-                        ),
-                        value="register",
-                        pt="4",
-                    ),
-                    default_value="login",  # Start with the Login tab selected
-                    width="100%",
-                    bg="white",
-                    border_radius="md",
-                    box_shadow="0 1px 3px 0 rgb(0 0 0 / 0.1)",
-                    border="1px solid #e5e7eb",
-                ),
-                width="100%",
-                max_width="420px",
-            ),
-            padding_top="10vh",  # Increased padding from the top
-            width="100%",  # Ensure center takes full width
-        ),
-        # Bottom footer (Positioned absolutely)
-        rx.box(
+        rx.vstack(
+            rx.heading("연구 참여 로그인", size="7", mb="6", text_align="center"),
             rx.text(
-                "TrustWeb Experiment Platform",
-                font_size="sm",
-                color="#6b7280",
+                "연구에 참여해주셔서 감사합니다. 계정이 없으시면 회원가입을 진행해주세요.",
+                mb="6",
+                color=COLORS.get("text_light", "#6b7280"),
                 text_align="center",
-                pb="4",
             ),
-            position="absolute",
-            bottom="0",
-            left="0",
-            right="0",
+            rx.tabs.root(
+                rx.tabs.list(
+                    rx.tabs.trigger("로그인", value="login"),
+                    rx.tabs.trigger("회원가입", value="register"),
+                    width="100%",
+                    justify_content="space_between",  # Use space-between for two items
+                    mb="4",
+                ),
+                rx.tabs.content(
+                    rx.vstack(
+                        rx.input(
+                            placeholder="이메일",
+                            value=AuthState.user_email,  # Changed
+                            on_change=AuthState.set_user_email,  # Changed
+                            type="email",
+                            style=login_form_input_style,
+                        ),
+                        rx.input(
+                            placeholder="비밀번호",
+                            value=AuthState.password,  # Changed
+                            on_change=AuthState.set_password,  # Changed
+                            type="password",
+                            style=login_form_input_style,
+                        ),
+                        rx.button(
+                            "로그인",
+                            on_click=AuthState.login,  # Changed
+                            style=login_form_button_style,
+                        ),
+                        spacing="4",
+                        width="100%",
+                    ),
+                    value="login",
+                ),
+                rx.tabs.content(
+                    rx.vstack(
+                        rx.input(
+                            placeholder="이메일",
+                            value=AuthState.user_email,  # Changed
+                            on_change=AuthState.set_user_email,  # Changed
+                            type="email",
+                            style=login_form_input_style,
+                        ),
+                        rx.input(
+                            placeholder="비밀번호",
+                            value=AuthState.password,  # Changed
+                            on_change=AuthState.set_password,  # Changed
+                            type="password",
+                            style=login_form_input_style,
+                        ),
+                        rx.input(
+                            placeholder="비밀번호 확인",
+                            value=AuthState.confirm_password,  # Changed
+                            on_change=AuthState.set_confirm_password,  # Changed
+                            type="password",
+                            style=login_form_input_style,
+                        ),
+                        rx.button(
+                            "회원가입",
+                            on_click=AuthState.register,  # Changed
+                            style=login_form_button_style,
+                        ),
+                        spacing="4",
+                        width="100%",
+                    ),
+                    value="register",
+                ),
+                default_value="login",
+                width="100%",
+            ),
+            rx.cond(
+                AuthState.auth_error != "",  # Changed
+                rx.callout.root(
+                    rx.callout.icon(rx.icon("circle_alert")),
+                    rx.callout.text(AuthState.auth_error),  # Changed
+                    color_scheme="red",
+                    variant="soft",
+                    margin_top="1em",
+                    width="100%",
+                ),
+            ),
+            spacing="5",  # Overall spacing for the vstack elements
             width="100%",
         ),
-        bg="#f3f4f6",
-        min_height="100vh",
-        position="relative",
-        padding_bottom="4em",  # Space for the footer
+        bg=COLORS.get("white", "white"),
+        padding="10",  # Equivalent to p="10" or p_x=10, p_y=10 -> 2.5rem if 1 unit = 0.25rem
+        border_radius="xl",
+        box_shadow="0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+        max_width="450px",
+        width="100%",
+        margin="auto",  # Center the box itself
     )

@@ -5,7 +5,7 @@ import reflex as rx
 INITIAL_ENDOWMENT = 100
 MULTIPLIER = 1.5
 NUM_COMPUTER_PLAYERS = 4
-TOTAL_ROUNDS = 10
+TOTAL_ROUNDS = 3
 
 
 class PublicGoodState(rx.State):
@@ -143,3 +143,18 @@ class PublicGoodState(rx.State):
         if self.game_finished and self.current_round == TOTAL_ROUNDS:
             return TOTAL_ROUNDS
         return self.current_round + 1
+
+    @rx.var
+    def multiplied_pool_str(self) -> str:
+        """Return the multiplied pool formatted to 0 decimal places."""
+        return f"{self.multiplied_pool:.0f}"
+
+    @rx.var
+    def per_share_str(self) -> str:
+        """Return the per share amount formatted to 0 decimal places."""
+        return f"{self.per_share:.0f}"
+
+    @rx.var
+    def human_payoff_str(self) -> str:
+        """Return the human payoff formatted to 0 decimal places."""
+        return f"{self.human_payoff:.0f}"
