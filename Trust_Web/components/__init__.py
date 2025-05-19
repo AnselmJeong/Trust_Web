@@ -9,6 +9,7 @@ from .final_page import final_page
 from .public_goods import public_goods_game_component
 from .questionnaire import questionnaire_ui_component
 from .demography import demography_form
+from .landing_page import landing_page
 
 __all__ = [
     "COLORS",
@@ -26,4 +27,5 @@ __all__ = [
     "public_goods_game_component",
     "questionnaire_ui_component",
     "demography_form",
+    "landing_page",
 ]

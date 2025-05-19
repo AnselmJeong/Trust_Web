@@ -65,17 +65,26 @@ def layout(content: rx.Component) -> rx.Component:
                 spacing="4",
             ),
             rx.spacer(),
-            # Right: User info and logout
-            rx.hstack(
-                rx.text(AuthState.user_email),  # Changed to AuthState
-                rx.button(
-                    rx.icon("log_out"),
-                    rx.text("Log out"),
-                    on_click=AuthState.logout,  # Changed to AuthState
-                    size="1",
-                    color_scheme="gray",
+            # Right: User info and login/logout
+            rx.cond(
+                AuthState.is_authenticated,
+                rx.hstack(
+                    rx.text(AuthState.user_email),
+                    rx.button(
+                        rx.icon("log_out"),
+                        rx.text("Log out"),
+                        on_click=AuthState.logout,
+                        size="1",
+                        color_scheme="gray",
+                    ),
+                    spacing="4",
                 ),
-                spacing="4",
+                rx.button(
+                    "로그인",
+                    on_click=AuthState.open_login_modal,
+                    size="1",
+                    color_scheme="indigo",
+                ),
             ),
             width="100%",
             padding="1em",
@@ -89,6 +98,22 @@ def layout(content: rx.Component) -> rx.Component:
             width="100%",
             padding="2em 0",
             min_height="calc(100vh - 140px)",  # Adjust based on header/footer height
+        ),
+        # Login modal (global, so it works from nav)
+        rx.cond(
+            AuthState.show_login_modal,
+            rx.dialog.root(
+                rx.dialog.overlay(),
+                rx.dialog.content(
+                    __import__("Trust_Web.components.login_form", fromlist=["login_form"]).login_form(),
+                    rx.dialog.close(
+                        rx.button("닫기", on_click=AuthState.close_login_modal, style={"marginTop": "1em"})
+                    ),
+                    style={"padding": "2em", "borderRadius": "1em", "minWidth": "350px"},
+                ),
+                open=AuthState.show_login_modal,
+                on_open_change=lambda open: AuthState.close_login_modal() if not open else None,
+            ),
         ),
         # Footer
         rx.box(

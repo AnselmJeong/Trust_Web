@@ -19,6 +19,9 @@ class AuthState(rx.State):
     auth_error: str = ""
     user_id: str = ""  # Firebase localId
 
+    # Modal state for login dialog
+    show_login_modal: bool = False
+
     @rx.event
     def set_user_email(self, value: str) -> None:
         """Set the user email."""
@@ -145,3 +148,11 @@ class AuthState(rx.State):
         if not self.is_authenticated or not self.user_id:
             return rx.redirect("/")
         return None
+
+    @rx.event
+    def open_login_modal(self):
+        self.show_login_modal = True
+
+    @rx.event
+    def close_login_modal(self):
+        self.show_login_modal = False

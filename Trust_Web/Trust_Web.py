@@ -13,6 +13,7 @@ from Trust_Web.components import (
     final_page,
     questionnaire_ui_component,
     demography_form,
+    landing_page,
 )
 from Trust_Web.layout import layout
 
@@ -115,12 +116,6 @@ def section_heading(text: str, **kwargs) -> rx.Component:
     return rx.heading(text, **STYLES["heading"], **kwargs)
 
 
-# The login page (shown when not authenticated)
-def login_page() -> rx.Component:
-    """Login page without layout."""
-    return login_form()
-
-
 # The main app content with layout
 @rx.page(route="/app/[page_id]", on_load=AuthState.on_load_app_page_check)
 def app_page():
@@ -148,13 +143,28 @@ def app_page():
     )
 
 
-# Root page for login and redirection
+# Root page for landing and login modal
 @rx.page(route="/", on_load=AuthState.on_load_index_page_check)
 def index():
-    """Root page that shows login or redirects to app if authenticated."""
+    """Root page that shows the landing page and login modal if needed."""
     print(f"[INDEX_PAGE] Loading. User Auth: {AuthState.is_authenticated}")
     return rx.fragment(
-        login_page(),
+        landing_page(),
+        rx.cond(
+            AuthState.show_login_modal,
+            rx.dialog.root(
+                rx.dialog.overlay(),
+                rx.dialog.content(
+                    login_form(),
+                    rx.dialog.close(
+                        rx.button("닫기", on_click=AuthState.close_login_modal, style={"marginTop": "1em"})
+                    ),
+                    style={"padding": "2em", "borderRadius": "1em", "minWidth": "350px"},
+                ),
+                open=AuthState.show_login_modal,
+                on_open_change=lambda open: AuthState.close_login_modal() if not open else None,
+            ),
+        ),
     )
 
 
