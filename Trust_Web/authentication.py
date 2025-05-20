@@ -56,14 +56,13 @@ class AuthState(rx.State):
             self.user_id = raw_user_id
             self.is_authenticated = True
             self.auth_error = ""
-            print(
-                f"[AUTH_STATE] Login successful. User ID set to: {self.user_id}, Auth: {self.is_authenticated}"
-            )
+            print(f"[AUTH_STATE] Login successful. User ID set to: {self.user_id}, Auth: {self.is_authenticated}")
             print(
                 f"[AUTH_STATE] Calling QuestionnaireState.set_user_identity with: id={self.user_id}, email={self.user_email}"
             )
 
             return [
+                AuthState.close_login_modal,
                 QuestionnaireState.set_user_identity(self.user_id, self.user_email),
                 DemographicState.set_user_identity(self.user_id, self.user_email),
                 rx.redirect("/app/demography"),
@@ -95,14 +94,13 @@ class AuthState(rx.State):
             self.user_id = raw_user_id
             self.is_authenticated = True
             self.auth_error = ""
-            print(
-                f"[AUTH_STATE] Register successful. User ID set to: {self.user_id}, Auth: {self.is_authenticated}"
-            )
+            print(f"[AUTH_STATE] Register successful. User ID set to: {self.user_id}, Auth: {self.is_authenticated}")
             print(
                 f"[AUTH_STATE] Calling QuestionnaireState.set_user_identity with: id={self.user_id}, email={self.user_email}"
             )
 
             return [
+                AuthState.close_login_modal,
                 QuestionnaireState.set_user_identity(self.user_id, self.user_email),
                 DemographicState.set_user_identity(self.user_id, self.user_email),
                 rx.redirect("/app/demography"),
@@ -138,7 +136,8 @@ class AuthState(rx.State):
         """Checks auth on index page load and redirects if necessary."""
         print(f"[AUTH_STATE-INDEX_CHECK] Auth: {self.is_authenticated}")
         if self.is_authenticated:
-            return rx.redirect("/app/demography")
+            # return rx.redirect("/app/demography") # Allow authenticated users to see the landing page
+            return None
         return None
 
     @rx.event
@@ -156,3 +155,8 @@ class AuthState(rx.State):
     @rx.event
     def close_login_modal(self):
         self.show_login_modal = False
+
+    @rx.event
+    def set_login_modal_state(self, open_state: bool):
+        """Sets the visibility of the login modal based on the dialog's open state."""
+        self.show_login_modal = open_state

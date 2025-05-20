@@ -5,15 +5,24 @@ import datetime
 # Assuming firebase_db.py is in the same directory (Trust_Web)
 from .firebase_db import save_experiment_data, get_user_demographics_data
 
+
 class DemographicState(rx.State):
     user_id: str = ""  # Firebase localId, to be set by AuthState
-    user_email: str = "" # User's email, to be set by AuthState
-    demographics_doc_id: Optional[str] = None # Firestore document ID for this user's demographics
+    user_email: str = ""  # User's email, to be set by AuthState
+    demographics_doc_id: Optional[str] = None  # Firestore document ID for this user's demographics
 
     # Options for past_diagnoses - this remains as it's used for rendering in the form
     diagnosis_options: List[str] = [
-        "우울증", "공황장애", "사회공포증", "강박장애", "양극성 장애",
-        "불안장애", "적응장애", "대인기피증", "주의력 결핍장애", "기타 정신병적 장애"
+        "우울증",
+        "공황장애",
+        "사회공포증",
+        "강박장애",
+        "양극성 장애",
+        "불안장애",
+        "적응장애",
+        "대인기피증",
+        "주의력 결핍장애",
+        "기타 정신병적 장애",
     ]
 
     # Single dictionary to store all form data, including loaded data
@@ -27,8 +36,8 @@ class DemographicState(rx.State):
         self.user_id = user_id
         self.user_email = user_email
         self.error_message = ""
-        self.demographics_data = {} # Reset data before loading
-        self.demographics_doc_id = None # Reset doc_id
+        self.demographics_data = {}  # Reset data before loading
+        self.demographics_doc_id = None  # Reset doc_id
 
         if self.user_id:
             self._load_demographics_from_firebase()
@@ -42,7 +51,9 @@ class DemographicState(rx.State):
         if data_with_doc_id:
             self.demographics_data = data_with_doc_id.get("data", {})
             self.demographics_doc_id = data_with_doc_id.get("doc_id")
-            print(f"[DEMOGRAPHIC_STATE] Loaded demographics for user {self.user_id}, doc_id: {self.demographics_doc_id}")
+            print(
+                f"[DEMOGRAPHIC_STATE] Loaded demographics for user {self.user_id}, doc_id: {self.demographics_doc_id}"
+            )
             # Note: The form UI itself is not automatically updated by loading self.demographics_data here.
             # If the form fields are directly bound to parts of self.demographics_data (they are not with the current submit-only approach),
             # they would update. For a submit-only form that gets reset, loading primarily helps in not asking again
@@ -50,7 +61,7 @@ class DemographicState(rx.State):
             # If this data needs to pre-fill the form, the form structure would need to change to bind to these values.
         else:
             print(f"[DEMOGRAPHIC_STATE] No existing demographic data found for user: {self.user_id}")
-            self.demographics_data = {} # Ensure it's empty if nothing found
+            self.demographics_data = {}  # Ensure it's empty if nothing found
             self.demographics_doc_id = None
 
     @rx.event
@@ -59,20 +70,24 @@ class DemographicState(rx.State):
         print(f"[DEMOGRAPHIC_STATE] handle_submit called. Raw form_data: {form_data}")
         if not self.user_id or not self.user_email:
             self.error_message = "User not properly identified. Cannot save demographics."
-            print(f"[DEMOGRAPHIC_STATE] Error in submit: User ID ('{self.user_id}') or Email ('{self.user_email}') is not set.")
+            print(
+                f"[DEMOGRAPHIC_STATE] Error in submit: User ID ('{self.user_id}') or Email ('{self.user_email}') is not set."
+            )
             return
 
         # Prepare data to save
-        self.demographics_data = form_data.copy() # Start with the submitted form data
-        self.demographics_data["user_id_local"] = self.user_id # For querying
-        self.demographics_data["user_email"] = self.user_email # Storing the email
-        self.demographics_data["type"] = "demographics_data" # To distinguish this data type
+        self.demographics_data = form_data.copy()  # Start with the submitted form data
+        self.demographics_data["user_id_local"] = self.user_id  # For querying
+        self.demographics_data["user_email"] = self.user_email  # Storing the email
+        self.demographics_data["type"] = "demographics_data"  # To distinguish this data type
         # 'timestamp' will be added by save_experiment_data using server timestamp
 
         print(f"[DEMOGRAPHIC_STATE] Data being sent to Firebase: {self.demographics_data}")
-        
+
         try:
-            save_experiment_data(user_local_id=self.user_id, data=self.demographics_data, doc_id=self.demographics_doc_id)
+            save_experiment_data(
+                user_local_id=self.user_id, data=self.demographics_data, doc_id=self.demographics_doc_id
+            )
             self.error_message = "Demographics saved successfully!"
             print(f"[DEMOGRAPHIC_STATE] Demographics data saved for user {self.user_id}.")
             # Potentially clear self.demographics_data if form should be 'empty' for a resubmit, though reset_on_submit handles UI
@@ -81,6 +96,7 @@ class DemographicState(rx.State):
             # If it's a first-time save and doc_id was None, after saving, we won't have the new doc_id here
             # unless save_experiment_data is modified to return it and we capture it.
             # This is important if the user can resubmit and update the *same* demographics document.
+            return rx.redirect("/app/questionnaire")  # Navigate to questionnaire page
         except Exception as e:
             self.error_message = f"Failed to save demographics: {str(e)}"
             print(f"[DEMOGRAPHIC_STATE] Error saving demographics: {e}")
@@ -90,7 +106,9 @@ class DemographicState(rx.State):
     @rx.event
     def ensure_data_loaded_for_user(self):
         if self.user_id and not self.demographics_data:
-            print(f"[DEMOGRAPHIC_STATE] ensure_data_loaded_for_user: User ID {self.user_id} present, data empty. Attempting load.")
+            print(
+                f"[DEMOGRAPHIC_STATE] ensure_data_loaded_for_user: User ID {self.user_id} present, data empty. Attempting load."
+            )
             self._load_demographics_from_firebase()
         elif not self.user_id:
             print("[DEMOGRAPHIC_STATE] ensure_data_loaded_for_user: No User ID.")
@@ -99,7 +117,7 @@ class DemographicState(rx.State):
 
     # Removed individual state variables:
     # gender: Optional[str] = None
-    # onset_of_illness_years: Optional[str] = "" 
+    # onset_of_illness_years: Optional[str] = ""
     # education_level: Optional[str] = None
     # occupation: Optional[str] = None
     # has_psychiatric_history: Optional[str] = None
@@ -118,12 +136,13 @@ class DemographicState(rx.State):
     # def set_onset_of_diagnosis_details(self, details: str): ...
     # def set_on_psychiatric_medication(self, medication: str): ...
     # def set_in_psychological_counseling(self, counseling: str): ...
-    
+
     # Removed submit_demographics as it's replaced by handle_submit
+
 
 # Example of how to display the submitted data (could be on another page or part of the UI)
 # def display_submitted_data() -> rx.Component:
 #     return rx.vstack(
 #         rx.heading("Submitted Demographic Data"),
 #         rx.text(DemographicState.demographics_data.to_string()) # .to_string() is useful for dicts
-#     ) 
+#     )

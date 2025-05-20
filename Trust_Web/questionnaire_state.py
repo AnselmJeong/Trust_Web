@@ -37,9 +37,7 @@ class QuestionnaireState(rx.State):
                 with open(QUESTIONNAIRES_FILE_PATH, "r", encoding="utf-8") as f:
                     self._raw_configs = toml.load(f)
 
-                for (
-                    name
-                ) in QUESTIONNAIRE_ORDER:  # Ensure all ordered questionnaires are initialized
+                for name in QUESTIONNAIRE_ORDER:  # Ensure all ordered questionnaires are initialized
                     if name in self._raw_configs:
                         config_data = self._raw_configs[name]
                         if "items" in config_data and isinstance(config_data["items"], list):
@@ -64,9 +62,7 @@ class QuestionnaireState(rx.State):
     @rx.event
     def set_user_identity(self, user_id: str, user_email: str):
         """Sets the user ID and email for the questionnaire state."""
-        print(
-            f"[QUESTIONNAIRE_STATE] set_user_identity called with: id='{user_id}', email='{user_email}'"
-        )
+        print(f"[QUESTIONNAIRE_STATE] set_user_identity called with: id='{user_id}', email='{user_email}'")
         self.user_id = user_id
         self.user_email = user_email  # Store the email
         self.error_message = ""
@@ -98,13 +94,9 @@ class QuestionnaireState(rx.State):
                     ):
                         self.responses[q_name] = loaded_q_responses
                         self.response_doc_ids[q_name] = data.get("doc_id")
-                        print(
-                            f"[QUESTIONNAIRE_STATE] Loaded responses for {q_name}, doc_id: {data.get('doc_id')}"
-                        )
+                        print(f"[QUESTIONNAIRE_STATE] Loaded responses for {q_name}, doc_id: {data.get('doc_id')}")
                     else:
-                        print(
-                            f"[QUESTIONNAIRE_STATE] Mismatch/error loading responses for {q_name}."
-                        )
+                        print(f"[QUESTIONNAIRE_STATE] Mismatch/error loading responses for {q_name}.")
 
         if QUESTIONNAIRE_ORDER:
             self.current_questionnaire = QUESTIONNAIRE_ORDER[0]
@@ -178,9 +170,7 @@ class QuestionnaireState(rx.State):
             self.error_message = f"Invalid item index: {item_index}."
             return
 
-        if questionnaire_name not in self.responses or len(
-            self.responses[questionnaire_name]
-        ) != len(items):
+        if questionnaire_name not in self.responses or len(self.responses[questionnaire_name]) != len(items):
             self.responses[questionnaire_name] = [None] * len(items)
 
         self.responses[questionnaire_name][item_index] = value
@@ -215,9 +205,7 @@ class QuestionnaireState(rx.State):
             try:
                 current_score_int = int(score_value_str)
             except ValueError:
-                self.error_message = (
-                    f"Internal error: Non-integer string response ('{score_value_str}')."
-                )
+                self.error_message = f"Internal error: Non-integer string response ('{score_value_str}')."
                 return None
 
             item_number_1_indexed = idx + 1
@@ -257,9 +245,7 @@ class QuestionnaireState(rx.State):
 
         q_responses = self.responses.get(current_q_name)
         if not q_responses or any(r is None for r in q_responses):
-            self.error_message = (
-                f"Please answer all items for '{current_q_name}' before submitting."
-            )
+            self.error_message = f"Please answer all items for '{current_q_name}' before submitting."
             return
 
         try:
@@ -296,18 +282,11 @@ class QuestionnaireState(rx.State):
             if current_q_index < len(QUESTIONNAIRE_ORDER) - 1:
                 next_q_name = QUESTIONNAIRE_ORDER[current_q_index + 1]
                 self.current_questionnaire = next_q_name
-                # Reset responses for the next questionnaire to ensure it's clean
-                if next_q_name in self._raw_configs and "items" in self._raw_configs[next_q_name]:
-                    self.responses[next_q_name] = [None] * len(
-                        self._raw_configs[next_q_name]["items"]
-                    )
-                else:  # Should be already initialized by _ensure_configs_loaded
-                    self.responses[next_q_name] = []
                 self.calculated_scores.pop(next_q_name, None)  # Clear any previous score for next_q
                 return None  # Stay on the same page, UI will update due to current_questionnaire change
             else:
                 # Last questionnaire submitted, navigate to instructions
-                return rx.redirect("/app/instructions")
+                return rx.redirect("/app/public-goods")
 
         except ValueError:  # Handles QUESTIONNAIRE_ORDER.index() if current_q_name is not in order
             self.error_message = f"Error finding '{current_q_name}' in questionnaire sequence."

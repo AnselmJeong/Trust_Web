@@ -44,12 +44,11 @@ login_form_button_style = {
     **STYLES.get("button", {}),
     "font_size": "md",  # Example override
     "mb": "4",
+    "width": "80%",
 }
 
 
-def auth_input(
-    placeholder: str, value: Var[str], on_change: EventSpec, type: str = "text"
-) -> rx.Component:
+def auth_input(placeholder: str, value: Var[str], on_change: EventSpec, type: str = "text") -> rx.Component:
     """Reusable input field for authentication forms."""
     return rx.input(
         placeholder=placeholder,
@@ -71,10 +70,11 @@ def login_form() -> rx.Component:
         rx.vstack(
             rx.heading("연구 참여 로그인", size="7", mb="6", text_align="center"),
             rx.text(
-                "연구에 참여해주셔서 감사합니다. 계정이 없으시면 회원가입을 진행해주세요.",
+                "연구에 참여해주셔서 감사합니다.\n 계정이 없으시면 회원가입을 진행해주세요.",
                 mb="6",
                 color=COLORS.get("text_light", "#6b7280"),
-                text_align="center",
+                text_align="left",
+                style={"white_space": "pre-line"},
             ),
             rx.tabs.root(
                 rx.tabs.list(
@@ -162,8 +162,8 @@ def login_form() -> rx.Component:
         ),
         bg=COLORS.get("white", "white"),
         padding="10",  # Equivalent to p="10" or p_x=10, p_y=10 -> 2.5rem if 1 unit = 0.25rem
-        border_radius="xl",
-        box_shadow="0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+        # border_radius="xl",
+        # box_shadow="0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
         max_width="450px",
         width="100%",
         margin="auto",  # Center the box itself

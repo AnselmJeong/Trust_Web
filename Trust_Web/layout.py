@@ -13,68 +13,85 @@ def layout(content: rx.Component) -> rx.Component:
     return rx.vstack(
         # Header
         rx.hstack(
-            # Left: App title
-            rx.heading("TrustWeb", size="6", color="#333"),
+            # Left: App title - now a link to the landing page
+            rx.link(
+                rx.heading("TrustWeb", size="6", color="#333"),
+                href="/",
+                _hover={"text_decoration": "none"},  # Optional: remove underline on hover
+            ),
             # Center: Navigation tabs
             rx.spacer(),
-            rx.hstack(
-                rx.link(
-                    rx.hstack(
-                        rx.icon("pencil"),
-                        rx.text("Demographic"),
+            rx.cond(
+                AuthState.is_authenticated,
+                rx.hstack(
+                    rx.link(
+                        rx.hstack(
+                            rx.icon("pencil"),
+                            rx.text("기본정보입력"),
+                        ),
+                        href="/app/demography",
+                        color="#333",
+                        padding="0.5em 1em",
+                        border_radius="md",
+                        _hover={"bg": "#f0f0f0"},
                     ),
-                    href="/app/demography",
-                    color="#333",
-                    padding="0.5em 1em",
-                    border_radius="md",
-                    _hover={"bg": "#f0f0f0"},
-                ),
-                rx.link(
-                    rx.hstack(
-                        rx.icon("file_text"),
-                        rx.text("Questionnaire"),
+                    rx.link(
+                        rx.hstack(
+                            rx.icon("file_text"),
+                            rx.text("설문지작성"),
+                        ),
+                        href="/app/questionnaire",
+                        color="#333",
+                        padding="0.5em 1em",
+                        border_radius="md",
+                        _hover={"bg": "#f0f0f0"},
                     ),
-                    href="/app/questionnaire",
-                    color="#333",
-                    padding="0.5em 1em",
-                    border_radius="md",
-                    _hover={"bg": "#f0f0f0"},
-                ),
-                rx.link(
-                    rx.hstack(
-                        rx.icon("activity"),
-                        rx.text("Results"),
+                    rx.link(
+                        rx.hstack(
+                            rx.icon("bell"),
+                            rx.text("공공재게임"),
+                        ),
+                        href="/app/public-goods",
+                        color="#333",
+                        padding="0.5em 1em",
+                        border_radius="md",
+                        _hover={"bg": "#f0f0f0"},
                     ),
-                    href="/app/results",
-                    color="#333",
-                    padding="0.5em 1em",
-                    border_radius="md",
-                    _hover={"bg": "#f0f0f0"},
-                ),
-                rx.link(
-                    rx.hstack(
-                        rx.icon("bell"),
-                        rx.text("Updates"),
+                    rx.link(
+                        rx.hstack(
+                            rx.icon("bell"),
+                            rx.text("신뢰개임"),
+                        ),
+                        href="/app/section1",
+                        color="#333",
+                        padding="0.5em 1em",
+                        border_radius="md",
+                        _hover={"bg": "#f0f0f0"},
                     ),
-                    href="/app/updates",
-                    color="#333",
-                    padding="0.5em 1em",
-                    border_radius="md",
-                    _hover={"bg": "#f0f0f0"},
+                    rx.link(
+                        rx.hstack(
+                            rx.icon("activity"),
+                            rx.text("결과보기"),
+                        ),
+                        href="/app/results",
+                        color="#333",
+                        padding="0.5em 1em",
+                        border_radius="md",
+                        _hover={"bg": "#f0f0f0"},
+                    ),
+                    spacing="4",
                 ),
-                spacing="4",
             ),
             rx.spacer(),
             # Right: User info and login/logout
             rx.cond(
                 AuthState.is_authenticated,
                 rx.hstack(
-                    rx.text(AuthState.user_email),
                     rx.button(
                         rx.icon("log_out"),
                         rx.text("Log out"),
                         on_click=AuthState.logout,
-                        size="1",
+                        size="3",
                         color_scheme="gray",
                     ),
                     spacing="4",
@@ -82,8 +99,8 @@ def layout(content: rx.Component) -> rx.Component:
                 rx.button(
                     "로그인",
                     on_click=AuthState.open_login_modal,
-                    size="1",
-                    color_scheme="indigo",
+                    size="3",
+                    color_scheme="orange",
                 ),
             ),
             width="100%",
@@ -103,16 +120,38 @@ def layout(content: rx.Component) -> rx.Component:
         rx.cond(
             AuthState.show_login_modal,
             rx.dialog.root(
-                rx.dialog.overlay(),
                 rx.dialog.content(
-                    __import__("Trust_Web.components.login_form", fromlist=["login_form"]).login_form(),
+                    # New close button at the top right
                     rx.dialog.close(
-                        rx.button("닫기", on_click=AuthState.close_login_modal, style={"marginTop": "1em"})
+                        rx.icon(
+                            tag="x",
+                            style={
+                                "cursor": "pointer",
+                                "position": "absolute",
+                                "top": "0.8rem",
+                                "right": "0.8rem",
+                                "color": "#AAAAAA",  # Light gray color for the X icon
+                                "_hover": {"color": "#333333"},  # Darker on hover
+                            },
+                            on_click=AuthState.close_login_modal,  # Ensure modal closes
+                        )
                     ),
-                    style={"padding": "2em", "borderRadius": "1em", "minWidth": "350px"},
+                    # login_form() is here
+                    __import__("Trust_Web.components.login_form", fromlist=["login_form"]).login_form(),
+                    # Removed the old close button from the bottom
+                    # rx.dialog.close(
+                    #     rx.button("닫기", on_click=AuthState.close_login_modal, style={"marginTop": "1em"})
+                    # ),
+                    style={
+                        "padding": "2em",
+                        "borderRadius": "1em",
+                        "minWidth": "350px",
+                        "position": "relative",  # Needed for absolute positioning of the close button
+                        "bg": "#fefaef",  # Added requested background color
+                    },
                 ),
                 open=AuthState.show_login_modal,
-                on_open_change=lambda open: AuthState.close_login_modal() if not open else None,
+                on_open_change=AuthState.set_login_modal_state,
             ),
         ),
         # Footer

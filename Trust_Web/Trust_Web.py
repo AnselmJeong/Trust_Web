@@ -120,22 +120,19 @@ def section_heading(text: str, **kwargs) -> rx.Component:
 @rx.page(route="/app/[page_id]", on_load=AuthState.on_load_app_page_check)
 def app_page():
     """Dynamic app page that shows different content based on page_id."""
-    current_page_id = AuthState.router.page.params.get("page_id", "") # Use .get for safety
+    current_page_id = AuthState.router.page.params.get("page_id", "")  # Use .get for safety
 
     print(
         f"[APP_PAGE] Loading. Page ID: {current_page_id}, User Auth: {AuthState.is_authenticated}, User ID: {AuthState.user_id}"
     )
 
     # Create a list of (value, component) tuples for rx.match
-    match_cases = [
-        (page_name, component_func) 
-        for page_name, component_func in PAGE_COMPONENT_MAPPING.items()
-    ]
-    
+    match_cases = [(page_name, component_func) for page_name, component_func in PAGE_COMPONENT_MAPPING.items()]
+
     content = rx.match(
-        current_page_id, 
-        *match_cases, # Unpack the list of tuples
-        rx.heading(rx.text(f"Unknown page: {current_page_id}"), size="4") # Default case
+        current_page_id,
+        *match_cases,  # Unpack the list of tuples
+        rx.heading(rx.text(f"Unknown page: {current_page_id}"), size="4"),  # Default case
     )
 
     return rx.fragment(
@@ -148,24 +145,46 @@ def app_page():
 def index():
     """Root page that shows the landing page and login modal if needed."""
     print(f"[INDEX_PAGE] Loading. User Auth: {AuthState.is_authenticated}")
-    return rx.fragment(
+    # The main content of the landing page
+    landing_content = rx.fragment(
         landing_page(),
+        # The login modal is kept here as it's specific to the landing page context
+        # when a user is not authenticated and tries to access functionality.
+        # The layout already handles a global login modal if initiated from the nav header.
+        # However, this placement ensures it appears correctly if triggered on the landing page itself.
         rx.cond(
             AuthState.show_login_modal,
             rx.dialog.root(
-                rx.dialog.overlay(),
                 rx.dialog.content(
-                    login_form(),
                     rx.dialog.close(
-                        rx.button("닫기", on_click=AuthState.close_login_modal, style={"marginTop": "1em"})
+                        rx.icon(
+                            tag="x",
+                            style={
+                                "cursor": "pointer",
+                                "position": "absolute",
+                                "top": "0.8rem",
+                                "right": "0.8rem",
+                                "color": "#AAAAAA",
+                                "_hover": {"color": "#333333"},
+                            },
+                            on_click=AuthState.close_login_modal,
+                        )
                     ),
-                    style={"padding": "2em", "borderRadius": "1em", "minWidth": "350px"},
+                    login_form(),
+                    style={
+                        "padding": "2em",
+                        "borderRadius": "1em",
+                        "minWidth": "350px",
+                        "position": "relative",
+                        "bg": "#fefaef",
+                    },
                 ),
                 open=AuthState.show_login_modal,
-                on_open_change=lambda open: AuthState.close_login_modal() if not open else None,
+                on_open_change=AuthState.set_login_modal_state,
             ),
         ),
     )
+    return layout(landing_content)
 
 
 # Create the app

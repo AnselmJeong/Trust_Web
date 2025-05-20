@@ -26,8 +26,6 @@ def questionnaire_ui_component() -> rx.Component:
         **table_border_style,
         "text_align": "left",
         "vertical_align": "middle",
-        "min_width": "300px",
-        "max_width": "450px",
     }
     # The radio cell style will ensure the radio group inside is centered if it doesn't take full width.
     # However, the hstack inside will be set to 100% width.
@@ -38,18 +36,34 @@ def questionnaire_ui_component() -> rx.Component:
     def anchors_header_comp(anchors: rx.Var[List[str]]) -> rx.Component:
         return rx.hstack(
             rx.foreach(
-                anchors,
-                lambda anchor: rx.box(
-                    rx.text(anchor, size="2", weight="regular", align="center"),
-                    # Each anchor text takes up proportional width.
-                    # Ensure the parent hstack has justify_content or items are flex-grow.
-                    flex_grow="1",  # Make items take available space
-                    text_align="center",
+                anchors,  # Iterate directly over the anchors Var
+                lambda anchor, idx: rx.fragment(  # Lambda receives item (anchor) and index (idx)
+                    rx.cond(  # Add divider only if not the first item (index > 0)
+                        idx > 0,
+                        rx.divider(orientation="vertical", height="auto", margin_x="0.5em", border_color="#E2E8F0"),
+                        rx.fragment(),  # No divider for the first item
+                    ),
+                    rx.box(
+                        rx.text(
+                            anchor,  # Use the anchor item directly
+                            size="2",
+                            weight="regular",
+                            style={
+                                "display": "block",
+                                "text_align": "center",
+                                "white_space": "pre-line",
+                            },
+                        ),
+                        flex_grow="1",
+                        text_align="center",
+                        padding_x="0.25em",  # Add some padding around text to not touch divider
+                    ),
                 ),
             ),
-            spacing="0",  # No space between anchor texts themselves, padding is on the box
+            spacing="0",
             width="100%",
-            justify_content="space-around",  # Distributes items evenly
+            justify_content="space-around",
+            align_items="stretch",  # Ensure dividers and text boxes stretch vertically
         )
 
     return rx.vstack(
@@ -58,8 +72,8 @@ def questionnaire_ui_component() -> rx.Component:
             rx.table.root(
                 rx.table.header(
                     rx.table.row(
-                        rx.table.column_header_cell("번호", style={**header_style, "width": "5%"}),
-                        rx.table.column_header_cell("문항", style={**header_style, "width": "50%"}),
+                        rx.table.column_header_cell("번호", style={**header_style, "width": "7%"}),
+                        rx.table.column_header_cell("문항", style={**header_style, "width": "48%"}),
                         rx.table.column_header_cell(
                             anchors_header_comp(QuestionnaireState.current_likert_anchors),
                             style={
@@ -84,9 +98,7 @@ def questionnaire_ui_component() -> rx.Component:
                                 rx.radio(
                                     items=QuestionnaireState.current_likert_options_as_strings,
                                     value=rx.cond(
-                                        QuestionnaireState.current_responses[
-                                            item_idx
-                                        ].is_not_none(),
+                                        QuestionnaireState.current_responses[item_idx].is_not_none(),
                                         QuestionnaireState.current_responses[item_idx],
                                         "",
                                     ),
@@ -98,6 +110,7 @@ def questionnaire_ui_component() -> rx.Component:
                                     spacing="4",
                                     width="100%",
                                     justify_content="space-around",
+                                    color_scheme="orange",
                                 ),
                                 style=radio_container_cell_style,
                             ),
@@ -133,7 +146,7 @@ def questionnaire_ui_component() -> rx.Component:
             align_items="stretch",
             spacing="5",
             width="100%",
-            max_width="900px",
+            max_width="1400px",
             margin="auto",
             padding="1em",
         ),
