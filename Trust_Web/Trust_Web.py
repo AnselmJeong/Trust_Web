@@ -72,10 +72,8 @@ STYLES = {
 PAGE_COMPONENT_MAPPING = {
     "demography": rx.center(demography_form(), width="100%"),
     "questionnaire": rx.center(questionnaire_ui_component(), width="100%"),
-    "instructions": instructions(),
     "public-goods": public_goods_game_component(),
     "section1": section_1(),
-    "section-transition": section_transition(),
     "section2": section_2(),
     "stage-transition": stage_transition(),
     "final": final_page(),

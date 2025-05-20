@@ -4,7 +4,6 @@ from .instructions import instructions
 from .section_1 import section_1
 from .section_2 import section_2
 from .stage_transition import stage_transition
-from .section_transition import section_transition
 from .final_page import final_page
 from .public_goods import public_goods_game_component
 from .questionnaire import questionnaire_ui_component
@@ -22,7 +21,6 @@ __all__ = [
     "section_1",
     "section_2",
     "stage_transition",
-    "section_transition",
     "final_page",
     "public_goods_game_component",
     "questionnaire_ui_component",
