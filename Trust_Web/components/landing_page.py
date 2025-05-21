@@ -14,7 +14,7 @@ IMAGE_THEME_DARK_YELLOW_ACCENT = "#E0A80D"  # Slightly darker than BORDER_YELLOW
 
 
 def landing_page() -> rx.Component:
-    """Landing page component with a new theme inspired by the provided image."""
+    """Landing page component with a new theme inspired by the provided image, with '타인' highlighted."""
 
     hero_section = rx.hstack(
         rx.box(
@@ -36,7 +36,7 @@ def landing_page() -> rx.Component:
             background=f"radial-gradient(circle, {IMAGE_THEME_YELLOW}20 0%, transparent 70%)",  # Subtle background
             # Adjusted width for larger screens, and added min_width
             width=["100%", "100%", "50%", "50%"],  # Responsive width, increased for larger screens
-            min_width=["none", "none", "500px", "500px"],  # Minimum width for larger screens
+            min_width=["none", "none", "450px", "450px"],  # Minimum width for larger screens
             align_items="center",
             justify_content="center",
             padding_right=["0", "0", "2rem", "2rem"],
@@ -44,7 +44,12 @@ def landing_page() -> rx.Component:
         ),
         rx.vstack(
             section_heading(
-                "당신은 과연 타인을\n 얼마나 믿을 수 있나요?",
+                rx.fragment(
+                    "당신은 과연 ",
+                    rx.text("타인", as_="span", style={"color": "#f97316", "font_weight": "bold"}),
+                    "을",
+                    rx.text("\n얼마나 신뢰할 수 있나요?", as_="span"),
+                ),
                 style={
                     "font_size": ["2rem", "2.5rem", "2.8rem"],
                     "color": IMAGE_THEME_TEXT_DARK,
@@ -67,6 +72,7 @@ def landing_page() -> rx.Component:
                     "border_radius": "md",  # "6px"
                     "width": "auto",
                     "align_self": "flex-start",
+                    "box_shadow": "0 2px 8px 0 #f9731620",
                 },
             ),
             align_items="flex-start",
@@ -75,7 +81,7 @@ def landing_page() -> rx.Component:
         ),
         spacing="3",
         width="100%",
-        padding_y=["2rem", "3rem", "4rem"],
+        padding_y=["1rem", "1.5rem", "2rem"],
         padding_x=["1rem", "1.5rem", "2rem"],  # Page level padding
         align_items="center",
         flex_direction=["column", "column", "row", "row"],  # Stack on mobile, row on desktop
@@ -86,7 +92,7 @@ def landing_page() -> rx.Component:
         border_width="2px",
         width="80%",
         margin_x="auto",
-        margin_y=["2rem", "2.5rem", "3rem"],
+        margin_y=["1rem", "1.5rem", "2rem"],
     )
 
     detailed_info_section = rx.hstack(
@@ -100,7 +106,7 @@ def landing_page() -> rx.Component:
                 },
             ),
             rx.text(
-                "우리는 모두 타인과 관계를 맺어 함께 살아가고자 합니다. 하지만 누군가에게는 관계를 맺는 것이 너무나 어려운 일입니다.\n\n모든 관계 맺기의 시작은 타인에 대한 기본적 신뢰로부터 출발합니다.\n\n이에 저희 연구진은 대인관계를 어려워하는 분들의 타인에 대한 신뢰 정도를 살펴보고자 합니다.",
+                "우리는 모두 타인과 관계를 맺어 함께 살아가고자 합니다. 하지만 누군가에게는 관계를 맺는 것이 너무나 어려운 일입니다.\n\n모든 관계 맺기는 타인에 대한 기본적 신뢰로부터 출발합니다.\n\n이에 저희 연구진은 대인관계를 어려워하는 분들을 대상으로 타인에 대한 신뢰 정도를 살펴보고자 합니다.",
                 style={
                     "color": IMAGE_THEME_TEXT_PRIMARY,
                     "font_size": "1rem",
@@ -160,7 +166,7 @@ def landing_page() -> rx.Component:
                 mb="1.5rem",
             ),
             rx.text(
-                "간단한 신뢰 게임과 짧은 설문을 통해 나의 신뢰 성향과 반응 패턴을 확인할 수 있습니다.\n여러분의 참여는 신뢰 현상과 현대 사회의 관계를 이해하는 단서가 됩니다.\n수집된 자료는 연구 목적으로만 사용되며, 익명 처리로 안전하게 보호됩니다.\n개인 신변 정보는 일절 수집하지 않으며, 참여자 개인 정보는 철저히 보호됩니다.",
+                "간단한 신뢰 게임과 짧은 설문을 통해 나의 신뢰 성향과 반응 패턴을 확인할 수 있습니다.\n여러분의 참여는 신뢰 정도와 대인 관계 어려움 사이의 관계를 이해하는 단서가 됩니다.\n수집된 자료는 연구 목적으로만 사용되며, 익명 처리로 안전하게 보호됩니다.\n개인 신변 정보는 일절 수집하지 않으며, 참여자 개인 정보는 철저히 보호됩니다.",
                 style={
                     "color": IMAGE_THEME_TEXT_PRIMARY,
                     "font_size": "1rem",

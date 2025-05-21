@@ -6,8 +6,6 @@ from Trust_Web.questionnaire_state import InstructionState  # Import Instruction
 from .common_styles import COLORS, STYLES, page_container  # Assuming these are still relevant
 from Trust_Web.layout import layout  # Import the main layout
 
-CIRCLED_NUMS_STR = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳"
-
 
 def dynamic_instructions_page() -> rx.Component:
     """Dynamic instructions component that loads content based on InstructionState."""
@@ -15,7 +13,7 @@ def dynamic_instructions_page() -> rx.Component:
     error_display = rx.cond(
         InstructionState.error_message != "",
         rx.callout.root(
-            rx.callout.icon(rx.icon("alert_triangle")),
+            rx.callout.icon(rx.icon("triangle_alert")),
             rx.callout.text(InstructionState.error_message),
             color_scheme="red",
             variant="soft",
@@ -35,7 +33,7 @@ def dynamic_instructions_page() -> rx.Component:
                     lambda rule, i: rx.box(
                         rx.hstack(
                             rx.text(
-                                i + 1,
+                                f"{i + 1}.",
                                 color=COLORS["primary"],
                                 font_weight="bold",
                                 font_size="1.5em",

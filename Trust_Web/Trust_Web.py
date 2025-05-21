@@ -186,4 +186,10 @@ def index():
 
 
 # Create the app
-app = rx.App()
+app = rx.App(
+    theme=rx.theme(
+        color_mode="light",
+        initial_color_mode="light",
+        use_system_color_mode=False,
+    )
+)

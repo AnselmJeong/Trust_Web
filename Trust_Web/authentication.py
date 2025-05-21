@@ -128,6 +128,7 @@ class AuthState(rx.State):
 
         return [
             TrustGameState.reset_game_state,  # Call reset_game_state from TrustGameState
+            __import__("Trust_Web.public_goods_state", fromlist=["PublicGoodState"]).PublicGoodState.reset_game,  # Call reset_game from PublicGoodState
             rx.redirect("/"),
         ]
 

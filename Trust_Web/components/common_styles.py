@@ -22,7 +22,6 @@ STYLES = {
         "border_radius": "xl",
         "width": "100%",
         "max_width": "600px",
-        "box_shadow": "0 1px 3px 0 rgb(0 0 0 / 0.1)",
         "padding": "8",
     },
     "heading": {

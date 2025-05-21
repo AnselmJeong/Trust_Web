@@ -25,8 +25,8 @@ def public_goods_game_component() -> rx.Component:
                 width="100%",
             ),
             rx.progress(
-                value=PublicGoodState.current_round,
-                max_=TOTAL_ROUNDS,
+                value=PublicGoodState.current_round + 1,
+                max=TOTAL_ROUNDS,
                 width="100%",
                 color_scheme="orange",
                 height="sm",
@@ -45,36 +45,45 @@ def public_goods_game_component() -> rx.Component:
             rx.divider(),
             rx.cond(
                 ~PublicGoodState.game_finished,
-                rx.vstack(
-                    rx.text(
-                        f"공공재에 얼마나 기부하시겠습니까 (0 - {PublicGoodState.human_balance})?",
-                        size="5",
-                        color_scheme="purple",
-                        font_weight="bold",
+                rx.cond(
+                    ~PublicGoodState.game_played,
+                    rx.vstack(
+                        rx.text(
+                            f"공공재에 얼마나 기부하시겠습니까 (0 - {PublicGoodState.human_balance // 2})?",
+                            size="5",
+                            color_scheme="purple",
+                            font_weight="bold",
+                        ),
+                        rx.input(
+                            value=PublicGoodState.human_contribution.to_string(),
+                            on_change=PublicGoodState.set_human_contribution,
+                            type="number",
+                        ),
+                        rx.cond(
+                            PublicGoodState.contribution_error != "",
+                            rx.text(PublicGoodState.contribution_error, color_scheme="red", size="2"),
+                        ),
+                        align_items="stretch",
+                        spacing="2",
+                        width="100%",
                     ),
-                    rx.input(
-                        value=PublicGoodState.human_contribution.to_string(),
-                        on_change=PublicGoodState.set_human_contribution,
-                        type="number",
-                        is_disabled=PublicGoodState.game_played,
-                    ),
-                    rx.cond(
-                        PublicGoodState.contribution_error != "",
-                        rx.text(PublicGoodState.contribution_error, color_scheme="red", size="2"),
-                    ),
-                    align_items="stretch",
-                    spacing="2",
-                    width="100%",
                 ),
             ),
             rx.cond(
                 PublicGoodState.game_finished,
-                rx.button(
-                    "신뢰 게임으로 넘어갑니다",
-                    on_click=TrustGameState.go_to_trust_game_instructions,
-                    width="100%",
-                    size="3",
-                    color_scheme="green",
+                rx.vstack(
+                    rx.heading("공공재 게임이 끝났습니다.", size="7"),
+                    rx.heading("대단히 수고하셨습니다.", size="5"),
+                    rx.button(
+                        "이제 신뢰 게임으로 넘어갑니다",
+                        on_click=lambda: rx.redirect("/app/instructions?game=section1"),
+                        width="100%",
+                        size="3",
+                        color_scheme="plum",
+                        margin_top="1.5rem",
+                    ),
+                    align_items="center",
+                    padding="2rem"
                 ),
                 rx.cond(
                     PublicGoodState.game_played,
@@ -91,15 +100,18 @@ def public_goods_game_component() -> rx.Component:
                         width="100%",
                         size="3",
                         color_scheme="tomato",
-                        is_disabled=(PublicGoodState.contribution_error != ""),
+                        disabled=(PublicGoodState.contribution_error != ""),
                     ),
                 ),
             ),
             rx.cond(
                 PublicGoodState.game_played,
                 rx.vstack(
-                    rx.heading("라운드 결과", size="5", margin_top="4"),
-                    rx.text(PublicGoodState.computer_contributions_str, white_space="pre-wrap"),
+                    rx.hstack(
+                        rx.heading(f"나의 투자 금액: {PublicGoodState.human_contribution}", size="5", margin_top="4", margin_right="3rem"),
+                        rx.heading(f"상대방의 투자 금액: {PublicGoodState.computer_contributions_str}", size="5", margin_top="4"),
+                        justify="center"
+                    ),
                     rx.divider(),
                     rx.hstack(
                         rx.vstack(
@@ -131,7 +143,7 @@ def public_goods_game_component() -> rx.Component:
                     rx.divider(),
                     rx.vstack(
                         rx.text("이번 라운드 순수익", size="5", color_scheme="gray"),
-                        rx.heading(PublicGoodState.human_payoff_str, size="9"),
+                        rx.heading(PublicGoodState.human_payoff_str, size="8"),
                         align_items="center",
                         padding_y="2",
                     ),

@@ -36,13 +36,15 @@ class PublicGoodState(rx.State):
         """Set the human player's contribution, with validation."""
         try:
             c = int(value)
-            if c < 0 or c > self.human_balance:
-                self.contribution_error = f"Contribution must be between 0 and {self.human_balance}."
+            if c < 0 or c > (self.human_balance // 2):
+                self.contribution_error = f"Contribution must be between 0 and {self.human_balance // 2}."
+                self.human_contribution = 0  # 잘못된 입력 시 값을 0으로 리셋
             else:
                 self.human_contribution = c
                 self.contribution_error = ""
         except ValueError:
             self.contribution_error = "Please enter a valid integer."
+            self.human_contribution = 0  # 잘못된 입력 시 값을 0으로 리셋
 
     @rx.event
     def play_game(self) -> None:
@@ -52,10 +54,10 @@ class PublicGoodState(rx.State):
         - Simulates computer contributions.
         - Calculates total, multiplied pool, per-share, and payoffs.
         """
-        # Validate inputs
-        if self.human_contribution < 0 or self.human_contribution > self.human_balance:
-            self.contribution_error = f"Contribution must be between 0 and {self.human_balance}."
-            return
+        # # Validate inputs
+        # if self.human_contribution < 0 or self.human_contribution > self.human_balance:
+        #     self.contribution_error = f"투자 가능한 금액은 0에서 {self.human_balance // 2} 사이입니다."
+        #     return
 
         # Total number of players is the number of computer players + 1 human player
         total_players = NUM_COMPUTER_PLAYERS + 1
@@ -124,7 +126,7 @@ class PublicGoodState(rx.State):
         """Return a readable string of computer contributions."""
         if not self.computer_contributions:
             return "Computers have not contributed yet in this round."
-        return ", ".join(f"Computer {i + 1} contributed {c}" for i, c in enumerate(self.computer_contributions))
+        return ", ".join(f"{c}" for c in self.computer_contributions)
 
     @rx.var
     def display_round_number(self) -> int:

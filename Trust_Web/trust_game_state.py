@@ -34,8 +34,6 @@ class TrustGameState(rx.State):
     # 6. Trust Game Instructions (신뢰 게임 안내) (was 6, remains 6)
     # 7. Final Page (new explicit page number)
 
-    current_page: int = 0  # Initial page after login will be questionnaire
-
     # current_round는 현재 진행중인 라운드의 번호이다.
     # 공공재, 신뢰 게임에서 한 상대와 총 10번의 round를 진행하게 된다.
     current_round: int = 1
@@ -257,7 +255,6 @@ class TrustGameState(rx.State):
     def reset_game_state(self) -> None:
         """Reset all game state variables. Called by AuthState.logout."""
         print("[TRUST_GAME_STATE] reset_game_state called")
-        self.current_page = 0
         self.current_round = 1
         self.current_stage = 0
         self.is_ready = False
@@ -288,10 +285,10 @@ class TrustGameState(rx.State):
     def round_str(self) -> str:
         return f"Round {self.current_round} / {NUM_ROUNDS}"
 
-    @rx.event
-    def go_to_trust_game_instructions(self):
-        """Sets the current page to the Trust Game instructions page."""
-        self.current_page = 6
+    # @rx.event
+    # def go_to_trust_game_instructions(self):
+    #     """Navigate to trust game instructions page."""
+    #     return rx.redirect("/app/instructions?game=section1")
 
     @rx.var
     def player_a_total_profit_in_section2(self) -> int:
