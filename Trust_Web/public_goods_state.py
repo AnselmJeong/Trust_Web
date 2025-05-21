@@ -37,9 +37,7 @@ class PublicGoodState(rx.State):
         try:
             c = int(value)
             if c < 0 or c > self.human_balance:
-                self.contribution_error = (
-                    f"Contribution must be between 0 and {self.human_balance}."
-                )
+                self.contribution_error = f"Contribution must be between 0 and {self.human_balance}."
             else:
                 self.human_contribution = c
                 self.contribution_error = ""
@@ -65,8 +63,7 @@ class PublicGoodState(rx.State):
         # Simulate computer contributions (based on their current balance)
         # 컴퓨터는 현재 잔액의 절반 이하를 기여할 수 있다.
         self.computer_contributions = [
-            random.randint(0, balance // 2) if balance > 0 else 0
-            for balance in self.computer_balances
+            random.randint(0, balance // 2) if balance > 0 else 0 for balance in self.computer_balances
         ]
 
         # Calculate total contribution
@@ -86,28 +83,22 @@ class PublicGoodState(rx.State):
         self.human_payoff = current_round_human_payoff  # Store this round's payoff for display
         self.human_balance += int(current_round_human_payoff)
 
-        for i, (contribution, balance) in enumerate(
-            zip(self.computer_contributions, self.computer_balances)
-        ):
+        for i, (contribution, balance) in enumerate(zip(self.computer_contributions, self.computer_balances)):
             current_round_computer_payoff = self.per_share - contribution
-            self.computer_payoffs[i] = (
-                current_round_computer_payoff  # Store this round's payoff for display
-            )
+            self.computer_payoffs[i] = current_round_computer_payoff  # Store this round's payoff for display
             self.computer_balances[i] += int(current_round_computer_payoff)
 
         self.game_played = True
-        self.current_round += 1
-
-        # Check if game is finished
-        if self.current_round >= TOTAL_ROUNDS:
-            self.game_finished = True
 
     @rx.event
     def prepare_next_round(self) -> None:
         """Prepare the state for the next round."""
+        self.current_round += 1
         self.game_played = False
         self.human_contribution = 0
         self.contribution_error = ""
+        if self.current_round >= TOTAL_ROUNDS:
+            self.game_finished = True
         # Results like total_contribution, multiplied_pool, per_share, human_payoff, computer_contributions, computer_payoffs
         # will be recalculated and overwritten in the next play_game call.
 
@@ -133,9 +124,7 @@ class PublicGoodState(rx.State):
         """Return a readable string of computer contributions."""
         if not self.computer_contributions:
             return "Computers have not contributed yet in this round."
-        return ", ".join(
-            f"Computer {i + 1} contributed {c}" for i, c in enumerate(self.computer_contributions)
-        )
+        return ", ".join(f"Computer {i + 1} contributed {c}" for i, c in enumerate(self.computer_contributions))
 
     @rx.var
     def display_round_number(self) -> int:

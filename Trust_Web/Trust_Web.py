@@ -4,11 +4,10 @@ from Trust_Web.questionnaire_state import QuestionnaireState
 from Trust_Web.authentication import AuthState
 from Trust_Web.components import (
     login_form,
-    instructions,
+    instructions_page,
     public_goods_game_component,
     section_1,
     section_2,
-    section_transition,
     stage_transition,
     final_page,
     questionnaire_ui_component,
@@ -150,37 +149,38 @@ def index():
         # when a user is not authenticated and tries to access functionality.
         # The layout already handles a global login modal if initiated from the nav header.
         # However, this placement ensures it appears correctly if triggered on the landing page itself.
-        rx.cond(
-            AuthState.show_login_modal,
-            rx.dialog.root(
-                rx.dialog.content(
-                    rx.dialog.close(
-                        rx.icon(
-                            tag="x",
-                            style={
-                                "cursor": "pointer",
-                                "position": "absolute",
-                                "top": "0.8rem",
-                                "right": "0.8rem",
-                                "color": "#AAAAAA",
-                                "_hover": {"color": "#333333"},
-                            },
-                            on_click=AuthState.close_login_modal,
-                        )
-                    ),
-                    login_form(),
-                    style={
-                        "padding": "2em",
-                        "borderRadius": "1em",
-                        "minWidth": "350px",
-                        "position": "relative",
-                        "bg": "#fefaef",
-                    },
-                ),
-                open=AuthState.show_login_modal,
-                on_open_change=AuthState.set_login_modal_state,
-            ),
-        ),
+        # rx.cond(
+        #     AuthState.show_login_modal,
+        #     rx.dialog.root(
+        #         rx.dialog.content(
+        #             rx.dialog.close(
+        #                 rx.icon(
+        #                     tag="x",
+        #                     style={
+        #                         "cursor": "pointer",
+        #                         "position": "absolute",
+        #                         "top": "0.8rem",
+        #                         "right": "0.8rem",
+        #                         "color": "#AAAAAA",
+        #                         "_hover": {"color": "#333333"},
+        #                     },
+        #                     on_click=AuthState.close_login_modal,
+        #                 )
+        #             ),
+        #             login_form(),
+        #             style={
+        #                 "padding": "2em",
+        #                 "borderRadius": "1em",
+        #                 "minWidth": "350px",
+        #                 "maxWidth": "350px",
+        #                 "position": "relative",
+        #                 "bg": "#fefaef",
+        #             },
+        #         ),
+        #         open=AuthState.show_login_modal,
+        #         on_open_change=AuthState.set_login_modal_state,
+        #     ),
+        # ),
     )
     return layout(landing_content)
 

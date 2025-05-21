@@ -14,11 +14,10 @@ def public_goods_game_component() -> rx.Component:
         rx.vstack(
             rx.hstack(
                 rx.icon(tag="users", mr=2),
-                rx.heading("Public Goods Game", size="7"),
+                rx.heading("공공재 게임", size="7"),
                 rx.spacer(),
                 rx.text(
-                    rx.text(PublicGoodState.display_round_number, font_weight="bold"),
-                    f" / {TOTAL_ROUNDS} Rounds",
+                    rx.text(f"{PublicGoodState.display_round_number} / {TOTAL_ROUNDS} 라운드", font_weight="bold"),
                     color_scheme="gray",
                 ),
                 justify="between",
@@ -29,28 +28,31 @@ def public_goods_game_component() -> rx.Component:
                 value=PublicGoodState.current_round,
                 max_=TOTAL_ROUNDS,
                 width="100%",
-                color_scheme="blue",
+                color_scheme="orange",
                 height="sm",
                 border_radius="md",
             ),
             rx.text(
-                f"Participants: {NUM_COMPUTER_PLAYERS + 1} (You and {NUM_COMPUTER_PLAYERS} computer players)",
-                size="2",
+                f"참가자: 당신을 포함해서 {NUM_COMPUTER_PLAYERS + 1}명",
+                size="3",
                 color_scheme="gray",
             ),
             rx.text(
-                f"Your current balance: {PublicGoodState.human_balance}",
-                size="2",
+                f"당신의 현재 잔고: {PublicGoodState.human_balance}",
+                size="3",
                 color_scheme="gray",
             ),
-            rx.text(f"Contribution Multiplier: x{MULTIPLIER}", size="2", color_scheme="gray"),
             rx.divider(),
             rx.cond(
                 ~PublicGoodState.game_finished,
                 rx.vstack(
-                    rx.text("How much will you contribute to the common pool?"),
+                    rx.text(
+                        f"공공재에 얼마나 기부하시겠습니까 (0 - {PublicGoodState.human_balance})?",
+                        size="5",
+                        color_scheme="purple",
+                        font_weight="bold",
+                    ),
                     rx.input(
-                        placeholder=f"Enter amount (0 - {PublicGoodState.human_balance})",
                         value=PublicGoodState.human_contribution.to_string(),
                         on_change=PublicGoodState.set_human_contribution,
                         type="number",
@@ -68,7 +70,7 @@ def public_goods_game_component() -> rx.Component:
             rx.cond(
                 PublicGoodState.game_finished,
                 rx.button(
-                    "Proceed to Trust Game",
+                    "신뢰 게임으로 넘어갑니다",
                     on_click=TrustGameState.go_to_trust_game_instructions,
                     width="100%",
                     size="3",
@@ -77,18 +79,18 @@ def public_goods_game_component() -> rx.Component:
                 rx.cond(
                     PublicGoodState.game_played,
                     rx.button(
-                        "Next Round",
+                        "다음 라운드로 넘어갑니다",
                         on_click=PublicGoodState.prepare_next_round,
                         width="100%",
                         size="3",
-                        color_scheme="blue",
+                        color_scheme="purple",
                     ),
                     rx.button(
-                        "Submit Decision",
+                        "결정 제출",
                         on_click=PublicGoodState.play_game,
                         width="100%",
                         size="3",
-                        color_scheme="gray",
+                        color_scheme="tomato",
                         is_disabled=(PublicGoodState.contribution_error != ""),
                     ),
                 ),
@@ -96,26 +98,26 @@ def public_goods_game_component() -> rx.Component:
             rx.cond(
                 PublicGoodState.game_played,
                 rx.vstack(
-                    rx.heading("Round Results", size="5", margin_top="4"),
+                    rx.heading("라운드 결과", size="5", margin_top="4"),
                     rx.text(PublicGoodState.computer_contributions_str, white_space="pre-wrap"),
                     rx.divider(),
                     rx.hstack(
                         rx.vstack(
-                            rx.text("Total Pool", size="2", color_scheme="gray"),
+                            rx.text("투자 총액", size="2", color_scheme="gray"),
                             rx.heading(PublicGoodState.total_contribution.to_string(), size="8"),
                             align_items="center",
                             flex_grow=1,
                             text_align="center",
                         ),
                         rx.vstack(
-                            rx.text("Multiplied Amount", size="2", color_scheme="gray"),
+                            rx.text("총수익", size="2", color_scheme="gray"),
                             rx.heading(PublicGoodState.multiplied_pool_str, size="8"),
                             align_items="center",
                             flex_grow=1,
                             text_align="center",
                         ),
                         rx.vstack(
-                            rx.text("Your Share", size="2", color_scheme="gray"),
+                            rx.text("당신의 배당", size="2", color_scheme="gray"),
                             rx.heading(PublicGoodState.per_share_str, size="8"),
                             align_items="center",
                             flex_grow=1,
@@ -128,14 +130,14 @@ def public_goods_game_component() -> rx.Component:
                     ),
                     rx.divider(),
                     rx.vstack(
-                        rx.text("Your payoff this round", size="5", color_scheme="gray"),
+                        rx.text("이번 라운드 순수익", size="5", color_scheme="gray"),
                         rx.heading(PublicGoodState.human_payoff_str, size="9"),
                         align_items="center",
                         padding_y="2",
                     ),
                     rx.text(
-                        f"Your new balance: {PublicGoodState.human_balance}",
-                        size="2",
+                        f"당신의 새로운 잔고: {PublicGoodState.human_balance}",
+                        size="5",
                         color_scheme="gray",
                         text_align="center",
                         width="100%",

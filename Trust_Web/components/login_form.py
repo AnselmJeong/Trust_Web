@@ -12,56 +12,19 @@ WHITE_COLOR = "white"
 BORDER_COLOR = "#e5e7eb"
 TEXT_LIGHT_COLOR = "#6b7280"
 
-# Common input style
-input_style = {
-    "bg": WHITE_COLOR,
-    "border": f"1px solid {BORDER_COLOR}",
-    "p": "2",
-    "border_radius": "md",
-    "mb": "4",
-    "width": "100%",
-}
-
-# Common button style
-button_style = {
-    "bg": PRIMARY_COLOR,
-    "color": WHITE_COLOR,
-    "font_weight": 600,
-    "font_size": "18px",
-    "padding": "14px 32px",
-    "border_radius": "md",
-    "width": "100%",
-    "_hover": {"bg": PRIMARY_DARK_COLOR},
-}
-
 # Define specific styles for login_form if not fully covered by common_styles
 login_form_input_style = {
     **STYLES.get("input", {}),  # Start with common input style
     "mb": "4",  # Override or add specific margin
+    "width": "100%",
 }
 
 login_form_button_style = {
     **STYLES.get("button", {}),
     "font_size": "md",  # Example override
     "mb": "4",
-    "width": "80%",
+    "width": "100%",
 }
-
-
-def auth_input(placeholder: str, value: Var[str], on_change: EventSpec, type: str = "text") -> rx.Component:
-    """Reusable input field for authentication forms."""
-    return rx.input(
-        placeholder=placeholder,
-        value=value,
-        on_change=on_change,
-        type=type,
-        style=input_style,
-    )
-
-
-def auth_button(text: str, on_click: EventSpec) -> rx.Component:
-    """Reusable button for authentication forms."""
-    return rx.button(text, on_click=on_click, style=button_style)
 
 
 def login_form() -> rx.Component:
@@ -99,6 +62,7 @@ def login_form() -> rx.Component:
                             on_change=AuthState.set_password,  # Changed
                             type="password",
                             style=login_form_input_style,
+                            on_key_down=AuthState.login_on_enter,
                         ),
                         rx.button(
                             "로그인",
@@ -109,6 +73,7 @@ def login_form() -> rx.Component:
                         width="100%",
                     ),
                     value="login",
+                    min_height="250px",
                 ),
                 rx.tabs.content(
                     rx.vstack(
@@ -125,6 +90,7 @@ def login_form() -> rx.Component:
                             on_change=AuthState.set_password,  # Changed
                             type="password",
                             style=login_form_input_style,
+                            on_key_down=AuthState.login_on_enter,
                         ),
                         rx.input(
                             placeholder="비밀번호 확인",
@@ -132,6 +98,7 @@ def login_form() -> rx.Component:
                             on_change=AuthState.set_confirm_password,  # Changed
                             type="password",
                             style=login_form_input_style,
+                            on_key_down=AuthState.register_on_enter,
                         ),
                         rx.button(
                             "회원가입",
@@ -142,6 +109,7 @@ def login_form() -> rx.Component:
                         width="100%",
                     ),
                     value="register",
+                    min_height="250px",
                 ),
                 default_value="login",
                 width="100%",
@@ -164,7 +132,7 @@ def login_form() -> rx.Component:
         padding="10",  # Equivalent to p="10" or p_x=10, p_y=10 -> 2.5rem if 1 unit = 0.25rem
         # border_radius="xl",
         # box_shadow="0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-        max_width="450px",
+        max_width="350px",
         width="100%",
         margin="auto",  # Center the box itself
     )

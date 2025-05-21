@@ -4,6 +4,9 @@ import reflex as rx
 # from Trust_Web.trust_game_state import TrustGameState
 from Trust_Web.questionnaire_state import InstructionState  # Import InstructionState
 from .common_styles import COLORS, STYLES, page_container  # Assuming these are still relevant
+from Trust_Web.layout import layout  # Import the main layout
+
+CIRCLED_NUMS_STR = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳"
 
 
 def dynamic_instructions_page() -> rx.Component:
@@ -29,12 +32,23 @@ def dynamic_instructions_page() -> rx.Component:
             rx.vstack(
                 rx.foreach(
                     InstructionState.current_game_rules,
-                    lambda rule: rx.box(
-                        rx.markdown(rule, padding_y="0.5em"),  # Use rx.markdown for better text formatting
+                    lambda rule, i: rx.box(
+                        rx.hstack(
+                            rx.text(
+                                i + 1,
+                                color=COLORS["primary"],
+                                font_weight="bold",
+                                font_size="1.5em",
+                                min_width="1.5em",
+                            ),
+                            rx.text(rule, padding_y="0.5em"),
+                            align_items="start",
+                            spacing="2",
+                        ),
+                        border_left=f"4px solid {COLORS['primary']}",
                         padding_x="1em",
-                        border_left=f"4px solid {COLORS.get('primary', '#f97316')}",
                         margin_bottom="0.75em",
-                        background_color="#f9fafb",  # Light background for rule boxes
+                        background_color="#f9fafb",
                     ),
                 ),
                 spacing="3",
@@ -49,7 +63,6 @@ def dynamic_instructions_page() -> rx.Component:
                 rx.hstack(
                     # Use dynamic button text
                     rx.text(InstructionState.current_game_next_page_text),
-                    rx.icon(tag="arrow_right", size=18),
                     spacing="2",
                 ),
                 # Navigate to dynamic next page URL
@@ -67,12 +80,15 @@ def dynamic_instructions_page() -> rx.Component:
         max_width="800px",  # Max width for instruction content
         margin_x="auto",  # Center the vstack
         align_items="stretch",
+        height="auto",  # Ensure no fixed height
+        min_height=None,  # Remove min_height if present
+        overflow_y="visible",  # Ensure no forced scroll
     )
-    return page_container(content_vstack)
+    return page_container(content_vstack, height="auto", overflow_y="visible")
 
 
 # The actual page component that will be routed to /app/instructions
 # It needs the on_load handler.
 @rx.page(route="/app/instructions", on_load=InstructionState.load_instructions_for_current_page)
 def instructions_page() -> rx.Component:
-    return dynamic_instructions_page()
+    return layout(dynamic_instructions_page())  # Wrap with main layout

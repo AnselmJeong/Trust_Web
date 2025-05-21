@@ -308,15 +308,23 @@ class InstructionState(rx.State):
 
     def _ensure_rules_loaded(self):
         if not self._raw_game_rules:
+            print(f"[InstructionState] _ensure_rules_loaded: Attempting to load game rules from {GAME_RULES_FILE_PATH}")
             try:
                 with open(GAME_RULES_FILE_PATH, "r", encoding="utf-8") as f:
                     self._raw_game_rules = toml.load(f)
+                print(
+                    f"[InstructionState] _ensure_rules_loaded: Successfully loaded rules. Keys: {list(self._raw_game_rules.keys())}"
+                )
             except FileNotFoundError:
                 self.error_message = f"Game rules file not found: {GAME_RULES_FILE_PATH}"
                 self._raw_game_rules = {}
+                print(f"[InstructionState] _ensure_rules_loaded: FileNotFoundError. Path: {GAME_RULES_FILE_PATH}")
             except Exception as e:
                 self.error_message = f"Error loading game rules: {str(e)}"
                 self._raw_game_rules = {}
+                print(f"[InstructionState] _ensure_rules_loaded: Exception loading rules: {type(e).__name__}: {e}")
+        else:
+            print("[InstructionState] _ensure_rules_loaded: Rules already loaded.")
 
     @rx.var
     def current_game_config(self) -> Dict[str, Any]:

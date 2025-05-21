@@ -1,6 +1,6 @@
 from .common_styles import COLORS, STYLES, page_container, primary_button, section_heading
 from .login_form import login_form
-from .instructions import instructions
+from .instructions import instructions_page
 from .section_1 import section_1
 from .section_2 import section_2
 from .stage_transition import stage_transition
@@ -17,7 +17,7 @@ __all__ = [
     "primary_button",
     "section_heading",
     "login_form",
-    "instructions",
+    "instructions_page",
     "section_1",
     "section_2",
     "stage_transition",

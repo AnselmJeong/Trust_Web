@@ -160,3 +160,13 @@ class AuthState(rx.State):
     def set_login_modal_state(self, open_state: bool):
         """Sets the visibility of the login modal based on the dialog's open state."""
         self.show_login_modal = open_state
+
+    @rx.event
+    def login_on_enter(self, key: str):
+        if key == "Enter":
+            return self.login()
+
+    @rx.event
+    def register_on_enter(self, key: str):
+        if key == "Enter":
+            return self.register()

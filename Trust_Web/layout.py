@@ -51,7 +51,7 @@ def layout(content: rx.Component) -> rx.Component:
                             rx.icon("bell"),
                             rx.text("공공재게임"),
                         ),
-                        href="/app/public-goods",
+                        href="/app/instructions?game=public_goods",
                         color="#333",
                         padding="0.5em 1em",
                         border_radius="md",
@@ -60,9 +60,9 @@ def layout(content: rx.Component) -> rx.Component:
                     rx.link(
                         rx.hstack(
                             rx.icon("bell"),
-                            rx.text("신뢰개임"),
+                            rx.text("신뢰게임"),
                         ),
-                        href="/app/section1",
+                        href="/app/instructions?game=section1",
                         color="#333",
                         padding="0.5em 1em",
                         border_radius="md",
@@ -114,7 +114,8 @@ def layout(content: rx.Component) -> rx.Component:
             flex="1",
             width="100%",
             padding="2em 0",
-            min_height="calc(100vh - 140px)",  # Adjust based on header/footer height
+            height="auto",
+            overflow_y="visible",
         ),
         # Login modal (global, so it works from nav)
         rx.cond(
@@ -145,7 +146,8 @@ def layout(content: rx.Component) -> rx.Component:
                     style={
                         "padding": "2em",
                         "borderRadius": "1em",
-                        "minWidth": "350px",
+                        "minWidth": "400px",
+                        "maxWidth": "400px",
                         "position": "relative",  # Needed for absolute positioning of the close button
                         "bg": "#fefaef",  # Added requested background color
                     },
