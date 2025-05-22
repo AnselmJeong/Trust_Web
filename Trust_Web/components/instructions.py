@@ -47,7 +47,7 @@ def dynamic_instructions_page() -> rx.Component:
                         border_left=f"4px solid {COLORS['primary']}",
                         padding_x="1em",
                         margin_bottom="0.75em",
-                        background_color="#f9fafb",
+                        
                     ),
                 ),
                 spacing="3",

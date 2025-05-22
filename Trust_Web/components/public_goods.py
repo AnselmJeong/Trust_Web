@@ -117,21 +117,54 @@ def public_goods_game_component() -> rx.Component:
             rx.cond(
                 PublicGoodState.game_played,
                 rx.vstack(
+                    # 라벨
                     rx.hstack(
-                        rx.heading(
-                            f"나의 투자 금액: {PublicGoodState.human_contribution}",
-                            size="5",
-                            margin_top="4",
-                            margin_right="3rem",
-                        ),
-                        rx.heading(
-                            f"상대방의 투자 금액: {PublicGoodState.computer_contributions_str}",
-                            size="5",
-                            margin_top="4",
-                        ),
-                        justify="center",
+                        rx.text("내 기부액", size="2", color_scheme="red"),
+                        rx.text("상대편 기부액", size="2", color_scheme="gray"),
+                        # align_items="start",
+                        spacing="8",
+                        # margin_bottom="0.5em",
                     ),
-                    rx.divider(),
+                    # 금액
+                    rx.hstack(
+                        rx.box(
+                            rx.text(PublicGoodState.human_contribution, font_size="1.5rem", color="#fff", font_weight="bold"),
+                            bg="#d1432b",
+                            border_radius="md",
+                            width="40px",
+                            height="40px",
+                            display="flex",
+                            align_items="center",
+                            justify_content="center",
+                            box_shadow="0 2px 8px 0 #d1432b30",
+                            margin_right="1.2em",
+                        ),
+                        rx.foreach(
+                            PublicGoodState.computer_contributions,
+                            lambda c: rx.box(
+                                rx.text(c, font_size="1.5rem", color="#222", font_weight="bold"),
+                                bg="#fef6c3",
+                                border_radius="md",
+                                width="40px",
+                                height="40px",
+                                display="flex",
+                                align_items="center",
+                                justify_content="center",
+                                box_shadow="0 2px 8px 0 #facc1530",
+                                margin_right="1em",
+                            ),
+                        ),
+                        align_items="center",
+                        spacing="2",
+                    ),
+                    margin_y="1em",
+                    align_items="center",
+                    width="100%",
+                ),
+            ),
+            rx.cond(
+                PublicGoodState.game_played,
+                rx.vstack(
                     rx.hstack(
                         rx.vstack(
                             rx.text("투자 총액", size="2", color_scheme="gray"),
