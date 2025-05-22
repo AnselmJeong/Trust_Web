@@ -1,136 +1,178 @@
 import reflex as rx
 from Trust_Web.trust_game_state import TrustGameState, NUM_ROUNDS
-from .common_styles import COLORS
+from .common_styles import COLORS, STYLES
 
 
 def section_1() -> rx.Component:
-    """Section 1 component styled as in the attached image."""
+    """Section 1 component styled to match the public goods game theme and the attached image."""
     sent = TrustGameState.amount_to_send
     received = TrustGameState.received_amount
     round_str = TrustGameState.round_str
-    return rx.center(
-        rx.box(
-            rx.vstack(
-                # Header: Section title and round info
-                rx.hstack(
-                    rx.heading(
-                        "\U0001f464 Section 1: You are Player B",
-                        size="6",
-                        style={"fontWeight": 600},
-                    ),
-                    rx.spacer(),
-                    rx.text(round_str, color="#6b7280", size="4", style={"fontWeight": 500}),
-                    align="center",
-                    width="100%",
-                ),
-                # Progress bar
-                rx.progress(
-                    value=TrustGameState.current_round,
-                    max=NUM_ROUNDS,
-                    style={"width": "100%", "marginTop": "-8px", "marginBottom": "8px"},
-                ),
-                # Subtext
-                rx.text(
-                    "Player A has sent you points. Decide how much to return.",
-                    color="#6b7280",
-                    size="4",
-                    style={"marginBottom": "8px"},
-                ),
-                # Sent/Received cards
-                rx.hstack(
-                    rx.box(
-                        rx.text("Player A Sent", color="#6b7280", size="3"),
-                        rx.heading(sent, size="6", style={"color": "#374151"}),
-                        style={
-                            "background": "#f9fafb",
-                            "borderRadius": "8px",
-                            "padding": "16px 32px",
-                            "boxShadow": "0 1px 2px rgba(0,0,0,0.03)",
-                            "minWidth": "120px",
-                            "textAlign": "center",
-                            "flex": "1",
-                        },
-                    ),
-                    rx.box(
-                        rx.text("You Received", color="#6b7280", size="3"),
-                        rx.heading(received, size="6", style={"color": "#2563eb"}),
-                        style={
-                            "background": "#f3f4f6",
-                            "borderRadius": "8px",
-                            "padding": "16px 32px",
-                            "boxShadow": "0 1px 2px rgba(0,0,0,0.03)",
-                            "minWidth": "120px",
-                            "textAlign": "center",
-                            "flex": "1",
-                        },
-                    ),
-                    spacing="4",
-                    width="100%",
-                ),
-                # How much to return
-                rx.text(
-                    "How much will you return to Player A?",
-                    size="5",
-                    style={"marginTop": "24px", "fontWeight": 500},
-                ),
-                rx.input(
-                    placeholder=f"Enter amount (0 - {received})",
-                    on_change=TrustGameState.set_amount_to_return,
-                    type="number",
-                    style={
-                        "width": "100%",
-                        "padding": "12px",
-                        "fontSize": "18px",
-                        "borderRadius": "6px",
-                        "border": "1px solid #e5e7eb",
-                        "marginBottom": "8px",
-                        "minHeight": "40px",
-                    },
-                ),
-                rx.button(
-                    "\u2714 Submit Decision",
-                    on_click=TrustGameState.submit_player_b_decision,
-                    style={
-                        "width": "100%",
-                        "background": "#f97316",
-                        "color": "white",
-                        "fontWeight": 600,
-                        "fontSize": "18px",
-                        "padding": "14px 0",
-                        "borderRadius": "6px",
-                        "marginTop": "8px",
-                        "marginBottom": "8px",
-                    },
-                ),
-                # Profits summary
-                rx.hstack(
-                    rx.text(
-                        f"\U0001f4b5 Your Profit: {TrustGameState.player_b_current_round_profit}",
-                        color="#22c55e",
-                        size="4",
-                        style={"fontWeight": 500},
-                    ),
-                    rx.spacer(),
-                    rx.text(
-                        f"\U0001f4b0 Player A's Profit: {TrustGameState.player_a_current_round_profit}",
-                        color="#3b82f6",
-                        size="4",
-                        style={"fontWeight": 500},
-                    ),
-                    style={"width": "100%", "marginTop": "12px"},
-                ),
-                spacing="2",
+    # 결정 제출 여부: State 변수로 판정
+    decision_submitted = TrustGameState.is_decision_submitted
+    return rx.card(
+        rx.vstack(
+            # Header: Icon, Title, Round info
+            rx.hstack(
+                rx.icon(tag="user", mr=2),
+                rx.heading("신뢰 게임 (수신자 역할)", size="7"),
+                rx.spacer(),
+                rx.text(round_str, color_scheme="gray", font_weight="bold"),
+                justify="between",
+                align_items="center",
                 width="100%",
             ),
-            style={
-                "background": "white",
-                "borderRadius": "12px",
-                "boxShadow": "0 2px 8px 0 rgba(0,0,0,0.07)",
-                "padding": "32px 32px 16px 32px",
-                "maxWidth": "600px",
-                "width": "100%",
-                "marginTop": "40px",
-            },
+            rx.progress(
+                value=TrustGameState.current_round + 1,
+                max=NUM_ROUNDS,
+                width="100%",
+                color_scheme="orange",
+                height="sm",
+                border_radius="md",
+            ),
+            rx.text(
+                "당신은 수신자입니다. 수탁자가 보낸 포인트 중 얼마를 돌려줄지 결정하세요.",
+                size="3",
+                color_scheme="gray",
+            ),
+            rx.divider(),
+            # Sent/Received cards
+            rx.hstack(
+                rx.vstack(
+                    rx.text("상대가 보낸 금액", size="2", color_scheme="gray"),
+                    rx.heading(sent, size="8", style={"color": "#374151"}),
+                    align_items="center",
+                    flex_grow=1,
+                    text_align="center",
+                    style={"background": "#f9fafb", "borderRadius": "8px", "padding": "12px 0"},
+                ),
+                rx.vstack(
+                    rx.text("내가 받은 금액", size="2", color_scheme="gray"),
+                    rx.heading(received, size="8", color_scheme="plum"),
+                    align_items="center",
+                    flex_grow=1,
+                    text_align="center",
+                    style={"background": "#f3f4f6", "borderRadius": "8px", "padding": "12px 0"},
+                ),
+                justify="between",
+                width="100%",
+                spacing="4",
+                padding_y="2",
+            ),
+            rx.divider(),
+            # How much to return
+            rx.text(
+                "상대방에게 돌려줄 금액을 입력하세요",
+                size="5",
+                color_scheme="plum",
+                font_weight="bold",
+                margin_top="1.5em",
+            ),
+            rx.input(
+                id="amount_input_section1",
+                placeholder=f"0 ~ {received}",
+                on_change=TrustGameState.set_amount_to_return,
+                type="number",
+                **STYLES["input"],
+                disabled=decision_submitted,
+            ),
+            # 결정 제출 후 profit/잔고 테이블 표시
+            rx.cond(
+                decision_submitted,
+                rx.center(
+                    rx.table.root(
+                        rx.table.header(
+                            rx.table.row(
+                                rx.table.column_header_cell(""),
+                                rx.table.column_header_cell("나", text_align="center"),
+                                rx.table.column_header_cell("상대방", text_align="center"),
+                            )
+                        ),
+                        rx.table.body(
+                            rx.table.row(
+                                rx.table.cell(rx.text("이번 라운드 순수익", color="#6b7280", size="3")),
+                                rx.table.cell(
+                                    rx.text(
+                                        TrustGameState.player_b_current_round_profit,
+                                        size="6",
+                                        font_weight="bold",
+                                        text_align="center",
+                                    )
+                                ),
+                                rx.table.cell(
+                                    rx.text(
+                                        TrustGameState.player_a_current_round_profit,
+                                        size="6",
+                                        # font_weight="bold",
+                                        text_align="center",
+                                    )
+                                ),
+                            ),
+                            rx.table.row(
+                                rx.table.cell(rx.text("누적된 잔고", color="#6b7280", size="3")),
+                                rx.table.cell(
+                                    rx.text(
+                                        TrustGameState.player_b_balance,
+                                        size="6",
+                                        font_weight="bold",
+                                        text_align="center",
+                                    )
+                                ),
+                                rx.table.cell(
+                                    rx.text(
+                                        TrustGameState.player_a_balance,
+                                        size="6",
+                                        # font_weight="bold",
+                                        text_align="center",
+                                    )
+                                ),
+                            ),
+                        ),
+                        width="320px",
+                        margin_y="2",
+                        size="1",
+                        variant="ghost",
+                    ),
+                    width="100%",
+                ),
+            ),
+            # 결정 제출/다음 라운드 버튼 분기
+            rx.cond(
+                ~decision_submitted,
+                rx.button(
+                    "결정 제출",
+                    on_click=TrustGameState.submit_player_b_decision,
+                    width="100%",
+                    size="3",
+                    color_scheme="tomato",
+                    font_weight="bold",
+                    font_size="18px",
+                    margin_top="8px",
+                    margin_bottom="8px",
+                ),
+                rx.button(
+                    "다음 라운드로",
+                    on_click=[
+                        TrustGameState.go_to_next_round,
+                        rx.set_value("amount_input_section1", ""),
+                        # rx.set_focus("amount_input_section1"),
+                    ],
+                    width="100%",
+                    size="3",
+                    color_scheme="orange",
+                    font_weight="bold",
+                    font_size="18px",
+                    margin_top="8px",
+                    margin_bottom="8px",
+                ),
+            ),
+            rx.divider(),
+            # Profits summary (결정 제출 후에만 보이도록)
+            spacing="4",
+            align_items="stretch",
         ),
-        style={"height": "100vh"},
+        width="clamp(300px, 80%, 600px)",
+        margin_x="auto",
+        margin_top="2em",
+        padding="6",
     )

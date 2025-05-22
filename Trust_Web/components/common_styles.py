@@ -40,12 +40,13 @@ STYLES = {
         "_hover": {"bg": COLORS["primary_dark"]},
     },
     "input": {
-        "bg": COLORS["white"],
-        "border": f"1px solid {COLORS['border']}",
-        "p": "2",
-        "border_radius": "md",
-        "mb": "4",
-        "width": "80%",
+        "width": "100%",
+        "padding": "12px",
+        "font_size": "18px",
+        "border_radius": "6px",
+        "border": "1px solid #e5e7eb",
+        "margin_bottom": "8px",
+        "min_height": "40px",
     },
 }
 

@@ -6,6 +6,7 @@ from Trust_Web.public_goods_state import (
     MULTIPLIER,
 )
 from Trust_Web.trust_game_state import TrustGameState
+from .common_styles import STYLES
 
 
 def public_goods_game_component() -> rx.Component:
@@ -49,15 +50,18 @@ def public_goods_game_component() -> rx.Component:
                     ~PublicGoodState.game_played,
                     rx.vstack(
                         rx.text(
-                            f"공공재에 얼마나 기부하시겠습니까 (0 - {PublicGoodState.human_balance // 2})?",
+                            "공공재에 얼마나 기부하시겠습니까?",
                             size="5",
-                            color_scheme="purple",
+                            color_scheme="plum",
                             font_weight="bold",
                         ),
                         rx.input(
-                            value=PublicGoodState.human_contribution.to_string(),
+                            id="public_goods_input",
+                            placeholder=f"0 ~ {PublicGoodState.human_balance // 2}",
+                            # value=PublicGoodState.human_contribution.to_string(),
                             on_change=PublicGoodState.set_human_contribution,
                             type="number",
+                            **STYLES["input"],
                         ),
                         rx.cond(
                             PublicGoodState.contribution_error != "",
@@ -83,7 +87,7 @@ def public_goods_game_component() -> rx.Component:
                         margin_top="1.5rem",
                     ),
                     align_items="center",
-                    padding="2rem"
+                    padding="2rem",
                 ),
                 rx.cond(
                     PublicGoodState.game_played,
@@ -92,11 +96,14 @@ def public_goods_game_component() -> rx.Component:
                         on_click=PublicGoodState.prepare_next_round,
                         width="100%",
                         size="3",
-                        color_scheme="purple",
+                        color_scheme="plum",
                     ),
                     rx.button(
                         "결정 제출",
-                        on_click=PublicGoodState.play_game,
+                        on_click=[
+                            PublicGoodState.play_game,
+                            rx.set_value("public_goods_input", ""),
+                        ],
                         width="100%",
                         size="3",
                         color_scheme="tomato",
@@ -108,9 +115,18 @@ def public_goods_game_component() -> rx.Component:
                 PublicGoodState.game_played,
                 rx.vstack(
                     rx.hstack(
-                        rx.heading(f"나의 투자 금액: {PublicGoodState.human_contribution}", size="5", margin_top="4", margin_right="3rem"),
-                        rx.heading(f"상대방의 투자 금액: {PublicGoodState.computer_contributions_str}", size="5", margin_top="4"),
-                        justify="center"
+                        rx.heading(
+                            f"나의 투자 금액: {PublicGoodState.human_contribution}",
+                            size="5",
+                            margin_top="4",
+                            margin_right="3rem",
+                        ),
+                        rx.heading(
+                            f"상대방의 투자 금액: {PublicGoodState.computer_contributions_str}",
+                            size="5",
+                            margin_top="4",
+                        ),
+                        justify="center",
                     ),
                     rx.divider(),
                     rx.hstack(

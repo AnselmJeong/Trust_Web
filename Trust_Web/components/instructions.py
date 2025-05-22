@@ -5,6 +5,7 @@ import reflex as rx
 from Trust_Web.questionnaire_state import InstructionState  # Import InstructionState
 from .common_styles import COLORS, STYLES, page_container  # Assuming these are still relevant
 from Trust_Web.layout import layout  # Import the main layout
+from Trust_Web.trust_game_state import TrustGameState  # 추가: section1 시작 이벤트를 위해 import
 
 
 def dynamic_instructions_page() -> rx.Component:
@@ -57,16 +58,26 @@ def dynamic_instructions_page() -> rx.Component:
             rx.text("No rules available for this game or game not loaded.", text_align="center", color="gray"),
         ),
         rx.flex(
-            rx.button(
-                rx.hstack(
-                    # Use dynamic button text
-                    rx.text(InstructionState.current_game_next_page_text),
-                    spacing="2",
+            rx.cond(
+                InstructionState.current_game_next_page_url == "/app/section1",
+                rx.button(
+                    rx.hstack(
+                        rx.text(InstructionState.current_game_next_page_text),
+                        spacing="2",
+                    ),
+                    on_click=TrustGameState.start_section_1,
+                    style=STYLES.get("button", {}),
+                    color_scheme="orange",
                 ),
-                # Navigate to dynamic next page URL
-                on_click=lambda: rx.redirect(InstructionState.current_game_next_page_url),
-                style=STYLES.get("button", {}),  # Use .get for safety
-                color_scheme="orange",  # Consistent color scheme
+                rx.button(
+                    rx.hstack(
+                        rx.text(InstructionState.current_game_next_page_text),
+                        spacing="2",
+                    ),
+                    on_click=lambda: rx.redirect(InstructionState.current_game_next_page_url),
+                    style=STYLES.get("button", {}),
+                    color_scheme="orange",
+                ),
             ),
             justify="center",  # Center button
             width="100%",

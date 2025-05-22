@@ -9,7 +9,7 @@ import reflex as rx
 from .firebase_db import save_experiment_data
 # from .authentication import AuthState # Removed
 
-NUM_ROUNDS = 10
+NUM_ROUNDS = 3  # test 용으로 원래는 10
 PROLIFERATION_FACTOR = 3
 INITIAL_BALANCE = 10
 
@@ -43,6 +43,7 @@ class TrustGameState(rx.State):
     current_stage: int = 0  # 0-4: Stages in Section 2
     is_ready: bool = False
     is_stage_transition: bool = False  # 거래 상대 교체 시 페이지 전환을 위한 플래그
+    is_decision_submitted: bool = False
 
     # Player B state
     # balance는 section이나 stage가 바뀌면 초기화된다.
@@ -66,6 +67,9 @@ class TrustGameState(rx.State):
     shuffled_profiles: List[Tuple[str, Dict]] = []  # List of (personality, profile) tuples
     player_b_personality: str = ""
     player_b_profile: Optional[Dict] = None
+
+    user_email: str = ""
+    user_id: str = ""
 
     @rx.event
     def set_amount_to_return(self, value: str) -> None:
@@ -91,6 +95,11 @@ class TrustGameState(rx.State):
         except ValueError:
             raise ValueError("Please enter a valid integer value")
 
+    @rx.event
+    def set_user_info(self, email: str, user_id: str):
+        self.user_email = email
+        self.user_id = user_id
+
     # ========================== Transaction ==========================
     @rx.event
     def simulate_player_a_decision(self) -> None:
@@ -105,33 +114,33 @@ class TrustGameState(rx.State):
         This function is executed when a human participant plays as player_b in the first section.
         """
         try:
-            # Calculate profits
-            player_b_profit: int = self.received_amount - self.amount_to_return
-            player_a_profit: int = self.amount_to_return - self.amount_to_send
-
-            # Update balances and profits
-            self.player_b_balance += player_b_profit
-            self.player_a_balance += player_a_profit
-            self.player_b_current_round_profit = player_b_profit
-            self.player_a_current_round_profit = player_a_profit
-
+            self.player_b_current_round_profit = self.received_amount - self.amount_to_return
+            self.player_a_current_round_profit = self.amount_to_return - self.amount_to_send
+            self.player_b_balance += self.player_b_current_round_profit
+            self.player_a_balance += self.player_a_current_round_profit
+            self.is_decision_submitted = True
             # Move to next round or section
-            if self.current_round < NUM_ROUNDS:
-                self.current_round += 1
-                self.simulate_player_a_decision()
-                self.amount_to_return = 0
-                self.player_a_current_round_profit = 0
-                self.player_b_current_round_profit = 0
-                return None  # Stay on the same page
-            else:
-                # Move to section transition page
-                self.current_round = 1
-                self.player_a_current_round_profit = 0
-                self.player_b_current_round_profit = 0
-                return self.proceed_to_section_transition()
-
+            # 다음 라운드로 이동은 별도 이벤트(go_to_next_round)에서 처리
+            pass
         except ValueError:
             pass
+
+    @rx.event
+    def go_to_next_round(self) -> None:
+        """Move to the next round, and reset round-specific variables."""
+        if self.current_round < NUM_ROUNDS:
+            self.current_round += 1
+            self.simulate_player_a_decision()
+            self.amount_to_return = 0
+            self.player_a_current_round_profit = 0
+            self.player_b_current_round_profit = 0
+            self.is_decision_submitted = False
+        else:
+            self.current_round = 1
+            self.player_a_current_round_profit = 0
+            self.player_b_current_round_profit = 0
+            self.is_decision_submitted = False
+            return self.proceed_to_section_transition()
 
     @rx.event
     def start_section_1(self) -> None:
@@ -146,9 +155,7 @@ class TrustGameState(rx.State):
     @rx.event
     def select_player_b_profile(self) -> None:
         """Select the Player B profile for the current stage."""
-        self.player_b_personality, self.player_b_profile = self.shuffled_profiles[
-            self.current_stage
-        ]
+        self.player_b_personality, self.player_b_profile = self.shuffled_profiles[self.current_stage]
 
     @rx.event
     def main_algorithm(self) -> None:
@@ -157,16 +164,21 @@ class TrustGameState(rx.State):
         Handle Player A's decision submission.
         This function is executed when a human participant plays as player_a in the second section.
         """
-        from .authentication import AuthState  # Added import here
+        from .authentication import AuthState
 
         try:
+            # 매번 AuthState에서 값을 복사
+            self.set_user_info(str(AuthState.user_email), str(AuthState.user_id))
+
             # Calculate Player B's return amount based on the profile
-            self.amount_to_return = self.calculate_player_b_return(self.amount_to_send)
+            self.amount_to_return = self.calculate_player_b_return()
 
             # for debugging
-            print(f"current_personality: {self.player_b_personality}")
-            print(f"amount_sent: {self.amount_to_send}")
-            print(f"amount_returned: {self.amount_to_return}")
+            # print(f"current_personality: {self.player_b_personality}")
+            # print(f"amount_sent: {self.amount_to_send}")
+            # print(f"amount_returned: {self.amount_to_return}")
+            # print(f"user_email: {self.user_email}")
+            # print(f"user_id: {self.user_id}")
 
             # Calculate profits
             player_a_profit: int = self.amount_to_return - self.amount_to_send
@@ -180,8 +192,8 @@ class TrustGameState(rx.State):
 
             # Record round
             round_data: Dict[str, Any] = {
-                "user_email": AuthState.user_email,  # Ensure email is included
-                "user_id_field": AuthState.user_id,  # Optional: keep localId also as a field in the doc
+                "user_email": self.user_email,
+                "user_id_field": self.user_id,
                 "stage": self.current_stage,
                 "round": self.current_round,
                 "personality": self.player_b_personality,
@@ -192,12 +204,15 @@ class TrustGameState(rx.State):
                 "ai_message": self.message_b,
                 "timestamp": datetime.datetime.now().isoformat(),
             }
+
             self.round_history.append(round_data)
-            # Pass AuthState.user_id (localId) for collection name, and round_data for the document content
-            save_experiment_data(user_local_id=AuthState.user_id, data=round_data)
+            # save_experiment_data(user_local_id=self.user_id, data=round_data)
 
             # Move to next round or stage
             if self.current_round < NUM_ROUNDS:
+                print(f"[DEBUG] current_round: {self.current_round}")
+                print(f"[DEBUG] current_stage: {self.current_stage}")
+
                 self.current_round += 1
                 self.amount_to_send = 0
                 self.player_a_current_round_profit = 0
@@ -206,13 +221,19 @@ class TrustGameState(rx.State):
             else:
                 # Move to next stage
                 self.current_stage += 1
+                print(f"[DEBUG] current_stage: {self.current_stage}, shuffled_profiles: {len(self.shuffled_profiles)}")
+                print(f"[DEBUG] is_stage_transition(before): {self.is_stage_transition}")
                 if self.current_stage >= len(self.shuffled_profiles):
                     # All stages completed, move to final page
+                    print(
+                        f"[DEBUG] FINAL: current_stage={self.current_stage}, shuffled_profiles={len(self.shuffled_profiles)}"
+                    )
                     return rx.redirect("/app/final")
                 else:
                     # Show stage transition page
-                    return self.proceed_to_stage_transition()
-
+                    result = self.proceed_to_stage_transition()
+                    print(f"[DEBUG] is_stage_transition(after): {self.is_stage_transition}")
+                    return result
         except ValueError:
             pass
 
@@ -313,7 +334,7 @@ class TrustGameState(rx.State):
         self.current_round = 1
         self.player_a_current_round_profit = 0
         self.player_b_current_round_profit = 0
-        return rx.redirect("/app/section-transition")
+        return rx.redirect("/app/instructions?game=section2")
 
     @rx.event
     def proceed_to_section2(self):
