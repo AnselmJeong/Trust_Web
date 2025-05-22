@@ -1,6 +1,8 @@
 import random
 from typing import List
 import reflex as rx
+from .firebase_db import save_experiment_data
+from Trust_Web.trust_game_state import TrustGameState
 
 INITIAL_ENDOWMENT = 100
 MULTIPLIER = 1.5
@@ -17,6 +19,8 @@ class PublicGoodState(rx.State):
     # User input
     human_contribution: int = 0
     contribution_error: str = ""
+    user_id: str = ""
+    user_email: str = ""
 
     # Game state
     current_round: int = 0
@@ -91,6 +95,19 @@ class PublicGoodState(rx.State):
             self.computer_balances[i] += int(current_round_computer_payoff)
 
         self.game_played = True
+
+        # 실험 데이터 저장
+        transaction = {
+            "user_id": self.user_id if self.user_id else getattr(TrustGameState, "user_id", ""),
+            "user_email": self.user_email if self.user_email else getattr(TrustGameState, "user_email", ""),
+            "game_name": "public goods game",
+            "round": self.current_round + 1,  # display_round_number와 맞추기 위해 +1
+            "timestamp": rx.utils.now().isoformat() if hasattr(rx.utils, "now") else "",
+            "human_contribution": self.human_contribution,
+            "computer_contributions": self.computer_contributions,
+            "human_payoff": self.human_payoff,
+        }
+        save_experiment_data(transaction["user_id"], transaction)
 
     @rx.event
     def prepare_next_round(self) -> None:

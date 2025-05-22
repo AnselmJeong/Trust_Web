@@ -97,17 +97,17 @@ def section_1() -> rx.Component:
                         rx.cond(
                             TrustGameState.player_b_current_round_profit > 0,
                             rx.heading(
-                                f"상대는 {TrustGameState.player_b_current_round_profit} 포인트를 얻었습니다.",
+                                f"상대의 순수익은 {TrustGameState.player_b_current_round_profit} 포인트 입니다.",
                                 size="5",
                                 font_weight="bold",
                                 color_scheme="gray",
                                 text_align="center",
                             ),
                             rx.text(
-                                f"상대는 {TrustGameState.player_b_current_round_profit} 포인트를 잃었습니다.",
+                                f"상대의 순손실은 {TrustGameState.player_b_current_round_profit} 포인트 입니다.",
                                 size="5",
                                 font_weight="bold",
-                                color_scheme="red",
+                                color_scheme="tomato",
                                 text_align="center",
                             ),
                         ),
@@ -176,16 +176,17 @@ def section_1() -> rx.Component:
                 ~decision_submitted,
                 primary_button(
                     "결정 제출",
+                    color_scheme="orange",
                     on_click=TrustGameState.submit_player_b_decision,
                 ),
                 primary_button(
-                    "다음 라운드로",
+                    "다음 라운드로 넘어갑니다",
                     on_click=[
                         TrustGameState.go_to_next_round,
                         rx.set_value("amount_input_section1", ""),
                         # rx.set_focus("amount_input_section1"),
                     ],
-                    color_scheme="orange",
+                    color_scheme="plum",
                 ),
             ),
             rx.divider(),

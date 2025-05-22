@@ -123,6 +123,21 @@ class TrustGameState(rx.State):
             self.player_b_balance += self.player_b_current_round_profit
             self.player_a_balance += self.player_a_current_round_profit
             self.is_decision_submitted = True
+            # Section 1: 실험 데이터 저장
+            if self.current_section == "section1":
+                transaction = {
+                    "user_id": self.user_id,
+                    "user_email": self.user_email,
+                    "game_name": "trust game",
+                    "section_num": 1,
+                    "round": self.current_round,
+                    "timestamp": datetime.datetime.now().isoformat(),
+                    "amount_sent": self.amount_to_send,
+                    "amount_returned": self.amount_to_return,
+                    "human_profit": self.amount_to_send - self.amount_to_return,
+                    "player_b_profit": self.amount_to_return - (self.amount_to_send * PROLIFERATION_FACTOR),
+                }
+                save_experiment_data(self.user_id, transaction)
             # Move to next round or section
             # 다음 라운드로 이동은 별도 이벤트(go_to_next_round)에서 처리
             pass
@@ -212,6 +227,26 @@ class TrustGameState(rx.State):
             }
 
             self.round_history.append(round_data)
+
+            # Section 2: 실험 데이터 저장
+            if self.current_section == "section2":
+                transaction = {
+                    "user_id": self.user_id,
+                    "user_email": self.user_email,
+                    "game_name": "trust game",
+                    "section_num": 2,
+                    "stage_num": self.current_stage,
+                    "round": self.current_round,
+                    "timestamp": datetime.datetime.now().isoformat(),
+                    "player_b_profile": self.player_b_profile,
+                    "amount_sent": self.amount_to_send,
+                    "amount_returned": self.amount_to_return,
+                    "message": self.message_b,
+                    "human_profit": player_a_profit,
+                    "player_b_profit": player_b_profit,
+                }
+                save_experiment_data(self.user_id, transaction)
+
             self.is_decision_submitted = True
             # 결과만 보여주고, 라운드/스테이지 이동은 go_to_next_round에서만 처리
             return None

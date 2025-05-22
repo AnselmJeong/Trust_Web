@@ -106,17 +106,17 @@ def section_2() -> rx.Component:
                             rx.cond(
                                 TrustGameState.player_a_current_round_profit > 0,
                                 rx.heading(
-                                    f"당신은 {TrustGameState.player_a_current_round_profit} 포인트를 얻었습니다.",
+                                    f"당신의 순수익은 {TrustGameState.player_a_current_round_profit} 포인트 입니다.",
                                     size="5",
                                     font_weight="bold",
                                     color_scheme="gray",
                                     text_align="center",
                                 ),
                                 rx.text(
-                                    f"당신은 {TrustGameState.player_a_current_round_profit} 포인트를 잃었습니다.",
+                                    f"당신의 순손실은 {TrustGameState.player_a_current_round_profit} 포인트 입니다.",
                                     size="5",
                                     font_weight="bold",
-                                    color_scheme="red",
+                                    color_scheme="tomato",
                                     text_align="center",
                                 ),
                             ),
@@ -180,14 +180,16 @@ def section_2() -> rx.Component:
                 "결정 제출",
                 on_click=TrustGameState.main_algorithm,
             ),
-            primary_button(
-                "다음 라운드로",
+            rx.button(
+                "다음 라운드로 넘어갑니다",
+                width="100%",
+                size="3",
                 on_click=[
                     TrustGameState.go_to_next_round,
-                    rx.set_value("amount_input_s2", ""),
-                    rx.set_focus("amount_input_s2"),
+                    # rx.set_value("amount_input_s2", ""),
+                    # rx.set_focus("amount_input_s2"),
                 ],
-                color_scheme="orange",
+                color_scheme="plum",
             ),
         ),
         spacing="4",

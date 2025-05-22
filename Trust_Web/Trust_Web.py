@@ -13,6 +13,7 @@ from Trust_Web.components import (
     questionnaire_ui_component,
     demography_form,
     landing_page,
+    results_page,
 )
 from Trust_Web.layout import layout
 
@@ -78,6 +79,7 @@ PAGE_COMPONENT_MAPPING = {
     "section2": section_2(),
     "stage-transition": stage_transition(),
     "final": final_page(),
+    "result": results_page(),
 }
 
 

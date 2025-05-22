@@ -38,7 +38,12 @@ def public_goods_game_component() -> rx.Component:
                 size="3",
                 color_scheme="gray",
             ),
-            rx.center(
+            rx.cond(
+                ~PublicGoodState.game_finished,
+                rx.cond(
+                    ~PublicGoodState.game_played,
+                    rx.vstack(
+                                    rx.center(
                 rx.vstack(
                     rx.text("현재 잔고", size="4", color_scheme="gray"),
                     rx.heading(PublicGoodState.human_balance, size="8", style={"color": "#374151"}),
@@ -47,11 +52,6 @@ def public_goods_game_component() -> rx.Component:
                 ),
             ),
             rx.divider(),
-            rx.cond(
-                ~PublicGoodState.game_finished,
-                rx.cond(
-                    ~PublicGoodState.game_played,
-                    rx.vstack(
                         rx.text(
                             "공공재에 얼마나 기부하시겠습니까?",
                             size="5",
@@ -93,14 +93,7 @@ def public_goods_game_component() -> rx.Component:
                     padding="2rem",
                 ),
                 rx.cond(
-                    PublicGoodState.game_played,
-                    rx.button(
-                        "다음 라운드로 넘어갑니다",
-                        on_click=PublicGoodState.prepare_next_round,
-                        width="100%",
-                        size="3",
-                        color_scheme="plum",
-                    ),
+                    ~PublicGoodState.game_played,
                     rx.button(
                         "결정 제출",
                         on_click=[
@@ -109,27 +102,30 @@ def public_goods_game_component() -> rx.Component:
                         ],
                         width="100%",
                         size="3",
-                        color_scheme="tomato",
+                        color_scheme="orange",
                         disabled=(PublicGoodState.contribution_error != ""),
                     ),
                 ),
             ),
+
             rx.cond(
                 PublicGoodState.game_played,
                 rx.vstack(
                     # 라벨
                     rx.hstack(
-                        rx.text("내 기부액", size="2", color_scheme="red"),
+                        rx.text("내 기부액", size="2", color="#ab4abb"),
                         rx.text("상대편 기부액", size="2", color_scheme="gray"),
                         # align_items="start",
-                        spacing="8",
+                        spacing="9",
+                        justify="between",
+                        width="50%",
                         # margin_bottom="0.5em",
                     ),
                     # 금액
                     rx.hstack(
                         rx.box(
-                            rx.text(PublicGoodState.human_contribution, font_size="1.5rem", color="#fff", font_weight="bold"),
-                            bg="#d1432b",
+                            rx.text(PublicGoodState.human_contribution, font_size="1.5rem", color_="#fff", font_weight="bold"),
+                            bg="#ab4abb",
                             border_radius="md",
                             width="40px",
                             height="40px",
@@ -143,7 +139,7 @@ def public_goods_game_component() -> rx.Component:
                             PublicGoodState.computer_contributions,
                             lambda c: rx.box(
                                 rx.text(c, font_size="1.5rem", color="#222", font_weight="bold"),
-                                bg="#fef6c3",
+                                bg="#fefaef",
                                 border_radius="md",
                                 width="40px",
                                 height="40px",
@@ -213,6 +209,17 @@ def public_goods_game_component() -> rx.Component:
                     border="1px solid #ddd",
                     border_radius="md",
                     margin_top="4",
+                ),
+            ),
+                        rx.cond(
+                PublicGoodState.game_played,
+                rx.button(
+                    "다음 라운드로 넘어갑니다",
+                    on_click=PublicGoodState.prepare_next_round,
+                    width="100%",
+                    size="3",
+                    color_scheme="plum",
+                    # margin_top="2em",
                 ),
             ),
             spacing="4",
