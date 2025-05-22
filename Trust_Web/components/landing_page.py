@@ -18,79 +18,46 @@ def landing_page() -> rx.Component:
 
     hero_section = rx.hstack(
         rx.box(
-            # Placeholder for a large robot image. Replace with your actual image.
-            # E.g., rx.image(src="/img/robot_main.png", alt="AI and Trust", ...)
+            # 이미지와 버튼을 겹치기 위해 relative
             rx.image(
-                src="/img/trust_puzzle.png",  # REMINDER: Replace with actual image path
-                alt="Sharing Puzzle based on Trust",
+                src="/img/hero.png",  # REMINDER: Replace with actual image path
+                alt="doubt persist",
                 height="auto",  # Adjust size as needed
                 width="100%",  # Image takes full width of its parent box
-                max_width="500px",  # But not more than 700px, or your desired max
-                style={
-                    "object_fit": "contain",  # or "cover"
-                    "border_radius": "md",
-                },
-            ),
-            # Example of trying to add a yellow accent, could be a background element
-            # For simplicity, this is just the image for now.
-            background=f"radial-gradient(circle, {IMAGE_THEME_YELLOW}20 0%, transparent 70%)",  # Subtle background
-            # Adjusted width for larger screens, and added min_width
-            width=["100%", "100%", "50%", "50%"],  # Responsive width, increased for larger screens
-            min_width=["none", "none", "450px", "450px"],  # Minimum width for larger screens
-            align_items="center",
-            justify_content="center",
-            padding_right=["0", "0", "2rem", "2rem"],
-            margin_bottom=["2rem", "2rem", "0", "0"],
-        ),
-        rx.vstack(
-            section_heading(
-                rx.fragment(
-                    "당신은 과연 ",
-                    rx.text("타인", as_="span", style={"color": "#f97316", "font_weight": "bold"}),
-                    "을",
-                    rx.text("\n얼마나 신뢰할 수 있나요?", as_="span"),
-                ),
-                style={
-                    "font_size": ["2rem", "2.5rem", "2.8rem"],
-                    "color": IMAGE_THEME_TEXT_DARK,
-                    "margin_bottom": "0.75rem",
-                    "line_height": "1.2",
-                },
-            ),
-            rx.text(
-                "연구에 참여하여 나의 신뢰 감각을 시험해보세요.",
-                style={"font_size": ["1.1rem", "1.15rem", "1.25rem"], "color": IMAGE_THEME_TEXT_PRIMARY, "mb": "2rem"},
             ),
             primary_button(
                 "회원가입/로그인",
                 on_click=AuthState.open_login_modal,
                 style={
-                    # "background_color": IMAGE_THEME_CYAN,
                     "color": COLORS["white"],
                     "font_size": "1.1rem",
                     "padding": "0.8rem 2rem",
-                    "border_radius": "md",  # "6px"
+                    "border_radius": "md",
                     "width": "auto",
-                    "align_self": "flex-start",
                     "box_shadow": "0 2px 8px 0 #f9731620",
+                    "position": "absolute",
+                    "bottom": "20%",
+                    "left": "78%",
+                    "transform": "translateX(-50%)",
+                    "z_index": 2,
                 },
             ),
-            align_items="flex-start",
-            spacing="3",
-            width=["100%", "100%", "55%", "60%"],  # Responsive width
+            position="relative",
+            align_items="center",
+            justify_content="center",
+            padding_right=["0", "0", "2rem", "2rem"],
+            margin_bottom=["2rem", "2rem", "0", "0"],
         ),
-        spacing="3",
         width="100%",
-        padding_y=["1rem", "1.5rem", "2rem"],
-        padding_x=["1rem", "1.5rem", "2rem"],  # Page level padding
+        # padding_y=["1rem", "1.5rem", "2rem"],
+        # padding_x=["1rem", "1.5rem", "2rem"],  # Page level padding
         align_items="center",
-        flex_direction=["column", "column", "row", "row"],  # Stack on mobile, row on desktop
     )
 
     divider_line = rx.divider(
         border_color=IMAGE_THEME_BORDER_YELLOW,
         border_width="2px",
-        width="80%",
+        width="100%",
         margin_x="auto",
         margin_y=["1rem", "1.5rem", "2rem"],
     )
@@ -116,7 +83,7 @@ def landing_page() -> rx.Component:
             ),
             align_items="flex-start",
             spacing="4",
-            width=["100%", "100%", "60%", "60%"],
+            width=["100%", "100%", "50%", "50%"],
             padding_right=["0", "0", "2rem", "2rem"],
             order=[2, 2, 1, 1],  # Text first on mobile
         ),
@@ -124,10 +91,10 @@ def landing_page() -> rx.Component:
             # Placeholder for a circular robot image. Replace with your actual image.
             # E.g., rx.image(src="/img/robot_profile.png", ...)
             rx.image(
-                src="/img/trust_hands.png",  # REMINDER: Replace with actual image path
+                src="/img/trust-2.png",  # REMINDER: Replace with actual image path
                 alt="Two hands touching each other",
-                width="280px",  # Adjust size as needed
-                height="280px",
+                width="100%",  # Adjust size as needed
+                height="auto",
                 style={
                     # "border_radius": "full",  # "50%"
                     "object_fit": "cover",
@@ -135,7 +102,7 @@ def landing_page() -> rx.Component:
                     # "box_shadow": f"0 0 25px {IMAGE_THEME_YELLOW}50",
                 },
             ),
-            width=["100%", "100%", "40%", "40%"],
+            width=["100%", "100%", "50%", "50%"],
             align_items="center",
             justify_content="center",
             margin_top=["2rem", "2rem", "0", "0"],

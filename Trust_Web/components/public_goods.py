@@ -38,10 +38,13 @@ def public_goods_game_component() -> rx.Component:
                 size="3",
                 color_scheme="gray",
             ),
-            rx.text(
-                f"당신의 현재 잔고: {PublicGoodState.human_balance}",
-                size="3",
-                color_scheme="gray",
+            rx.center(
+                rx.vstack(
+                    rx.text("현재 잔고", size="4", color_scheme="gray"),
+                    rx.heading(PublicGoodState.human_balance, size="8", style={"color": "#374151"}),
+                    align_items="center",
+                    text_align="center",
+                ),
             ),
             rx.divider(),
             rx.cond(
