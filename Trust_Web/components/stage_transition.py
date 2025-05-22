@@ -4,50 +4,96 @@ from .common_styles import COLORS, page_container, section_heading, primary_butt
 
 
 def stage_transition() -> rx.Component:
-    """Stage transition page styled similarly to instructions()."""
-    return page_container(
-        section_heading(f"Stage {TrustGameState.current_stage} Complete!"),
-        rx.text(
-            f"You have completed Stage {TrustGameState.current_stage} with Player B ({TrustGameState.player_b_personality}).",
-            size="3",
-            color=COLORS["text"],
-            mb="2",
-        ),
-        rx.vstack(
-            rx.text(
-                f"\U0001f4b0 Your current balance: {TrustGameState.player_a_balance}",
-                size="3",
-                color=COLORS["text_light"],
+    """Stage transition page styled similarly to section1/2, with a summary table."""
+    return rx.center(
+        rx.box(
+            rx.vstack(
+                # Header
+                rx.hstack(
+                    rx.icon(tag="user", mr=2),
+                    rx.heading(f"스테이지 {TrustGameState.current_stage} 완료!", size="7"),
+                    rx.spacer(),
+                    rx.text(f"상대방: {TrustGameState.player_b_personality}", color_scheme="gray", font_weight="bold"),
+                    justify="between",
+                    align_items="center",
+                    width="100%",
+                ),
+                rx.divider(),
+                rx.text(
+                    "이번 스테이지 동안 당신의 투자 및 수익 요약입니다.",
+                    size="4",
+                    color_scheme="gray",
+                    margin_bottom="1em",
+                ),
+                rx.center(
+                    rx.table.root(
+                        rx.table.header(
+                            rx.table.row(
+                                rx.table.column_header_cell("항목"),
+                                rx.table.column_header_cell("합계", text_align="center"),
+                            )
+                        ),
+                        rx.table.body(
+                            rx.table.row(
+                                rx.table.cell(rx.text("투자한 포인트 합계", color="#6b7280", size="3")),
+                                rx.table.cell(
+                                    rx.text(TrustGameState.stage_total_invested, size="6", text_align="center")
+                                ),
+                            ),
+                            rx.table.row(
+                                rx.table.cell(rx.text("돌려받은 포인트 합계", color="#6b7280", size="3")),
+                                rx.table.cell(
+                                    rx.text(TrustGameState.stage_total_returned, size="6", text_align="center")
+                                ),
+                            ),
+                            rx.table.row(
+                                rx.table.cell(rx.text("순이익", color="#6b7280", size="3")),
+                                rx.table.cell(rx.text(TrustGameState.stage_net_profit, size="6", text_align="center")),
+                            ),
+                            rx.table.row(
+                                rx.table.cell(rx.text("잔고 (스테이지 종료 시점)", color="#6b7280", size="3")),
+                                rx.table.cell(rx.text(TrustGameState.stage_end_balance, size="6", text_align="center")),
+                            ),
+                        ),
+                        width="340px",
+                        margin_y="2",
+                        size="1",
+                        variant="ghost",
+                    ),
+                    width="100%",
+                ),
+                rx.text(
+                    rx.cond(
+                        TrustGameState.is_last_stage,
+                        "모든 스테이지가 완료되었습니다! 실험의 최종 결과를 확인하세요.",
+                        "다음 스테이지에 도전하세요!",
+                    ),
+                    size="3",
+                    color=COLORS["text"],
+                    mb="6",
+                    weight="medium",
+                ),
+                rx.cond(
+                    TrustGameState.is_last_stage,
+                    primary_button(
+                        rx.text("최종 결과 보기"),
+                        on_click=lambda: rx.redirect("/app/final"),
+                    ),
+                    primary_button(
+                        rx.text("다음 스테이지로 이동"),
+                        on_click=TrustGameState.start_next_stage,
+                    ),
+                ),
+                spacing="4",
+                align_items="stretch",
             ),
-            rx.text(
-                f"\U0001f4b5 Your total profit so far: {TrustGameState.player_a_total_profit_in_section2}",
-                size="3",
-                color=COLORS["text_light"],
-            ),
-            align_items="start",
-            spacing="1",
-            bg=COLORS["background"],
-            padding="4",
-            border_radius="md",
-            width="100%",
-            mb="4",
-            border=f"1px solid {COLORS['border']}",
+            style={
+                "background": "white",
+                "borderRadius": "12px",
+                "boxShadow": "0 2px 8px 0 rgba(0,0,0,0.07)",
+                "padding": "32px 32px 16px 32px",
+                "maxWidth": "600px",
+                "width": "100%",
+            },
         ),
-        rx.text(
-            "Get ready for the next stage!",
-            size="3",
-            color=COLORS["text"],
-            mb="6",
-            weight="medium",
-        ),
-        primary_button(
-            rx.hstack(
-                rx.text("Start Next Stage"),
-                rx.icon(tag="arrow_right", size=18),
-                spacing="2",
-            ),
-            on_click=TrustGameState.start_next_stage,
-        ),
-        # Apply consistent padding within the card
-        padding="20px",
     )

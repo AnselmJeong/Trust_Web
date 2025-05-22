@@ -1,6 +1,6 @@
 import reflex as rx
 from Trust_Web.trust_game_state import TrustGameState, NUM_ROUNDS
-from .common_styles import COLORS, STYLES
+from .common_styles import COLORS, STYLES, primary_button
 from .stage_transition import stage_transition
 
 
@@ -39,110 +39,155 @@ def section_2() -> rx.Component:
             color_scheme="gray",
         ),
         rx.divider(),
-        # 주요 수치 카드
-        rx.hstack(
-            rx.vstack(
-                rx.text("현재 잔고", size="2", color_scheme="gray"),
-                rx.heading(balance, size="8", style={"color": "#374151"}),
-                align_items="center",
-                flex_grow=1,
-                text_align="center",
-                style={"background": "#f9fafb", "borderRadius": "8px", "padding": "12px 0"},
+        rx.cond(
+            ~decision_submitted,
+            rx.fragment(
+                rx.center(
+                    rx.vstack(
+                        rx.text("현재 잔고", size="2", color_scheme="gray"),
+                        rx.heading(balance, size="8", style={"color": "#374151"}),
+                        align_items="center",
+                        text_align="center",
+                    ),
+                ),
+                rx.text(
+                    "수신자에게 투자할 금액을 입력하세요",
+                    size="5",
+                    color_scheme="plum",
+                    font_weight="bold",
+                    margin_top="1.5em",
+                ),
+                rx.input(
+                    id="amount_input_s2",
+                    placeholder=f"0 ~ {max_send}",
+                    on_change=TrustGameState.set_amount_to_send,
+                    type="number",
+                    **STYLES["input"],
+                    disabled=decision_submitted,
+                ),
             ),
-            rx.vstack(
-                rx.text("최대 송금 가능액", size="2", color_scheme="gray"),
-                rx.heading(max_send, size="8", color_scheme="plum"),
-                align_items="center",
-                flex_grow=1,
-                text_align="center",
-                style={"background": "#f3f4f6", "borderRadius": "8px", "padding": "12px 0"},
-            ),
-            justify="between",
-            width="100%",
-            spacing="4",
-            padding_y="2",
-        ),
-        rx.divider(),
-        # How much to send
-        rx.text(
-            "수신자에게 투자할 금액을 입력하세요",
-            size="5",
-            color_scheme="plum",
-            font_weight="bold",
-            margin_top="1.5em",
-        ),
-        rx.input(
-            id="amount_input_s2",
-            placeholder=f"0 ~ {max_send}",
-            on_change=TrustGameState.set_amount_to_send,
-            type="number",
-            **STYLES["input"],
-            disabled=decision_submitted,
         ),
         # 결정 제출 후 결과 테이블
         rx.cond(
             decision_submitted,
-            rx.center(
-                rx.table.root(
-                    rx.table.header(
-                        rx.table.row(
-                            rx.table.column_header_cell(""),
-                            rx.table.column_header_cell("나", text_align="center"),
-                            rx.table.column_header_cell("상대방", text_align="center"),
-                        )
+            rx.vstack(
+                rx.hstack(
+                    rx.vstack(
+                        rx.text("송금한 금액", size="2", color_scheme="gray"),
+                        rx.heading(f"{TrustGameState.amount_to_send}", size="8"),
+                        align_items="center",
+                        flex_grow=1,
+                        text_align="center",
+                        style={"background": "#f9fafb", "borderRadius": "8px", "padding": "12px 0"},
                     ),
-                    rx.table.body(
-                        rx.table.row(
-                            rx.table.cell(rx.text("이번 라운드 순수익", color="#6b7280", size="3")),
-                            rx.table.cell(
-                                rx.text(TrustGameState.player_a_current_round_profit, size="6", text_align="center")
-                            ),
-                            rx.table.cell(
-                                rx.text(TrustGameState.player_b_current_round_profit, size="6", text_align="center")
-                            ),
+                    rx.vstack(
+                        rx.text("돌려받은 금액", size="2", color_scheme="gray"),
+                        rx.heading(
+                            f"{TrustGameState.amount_to_return}",
+                            size="8",
+                            font_weight="bold",
+                            text_align="center",
+                            color_scheme="plum",
                         ),
-                        rx.table.row(
-                            rx.table.cell(rx.text("누적된 잔고", color="#6b7280", size="3")),
-                            rx.table.cell(rx.text(TrustGameState.player_a_balance, size="6", text_align="center")),
-                            rx.table.cell(rx.text(TrustGameState.player_b_balance, size="6", text_align="center")),
-                        ),
+                        align_items="center",
+                        flex_grow=1,
+                        text_align="center",
+                        style={"background": "#f3f4f6", "borderRadius": "8px", "padding": "12px 0"},
                     ),
-                    width="320px",
-                    margin_y="2",
-                    size="1",
-                    variant="ghost",
+                    justify="between",
+                    width="100%",
+                    spacing="4",
+                    padding_y="2",
+                    margin_bottom="2rem",
                 ),
-                width="100%",
+                rx.center(
+                    rx.vstack(
+                        rx.center(
+                            rx.cond(
+                                TrustGameState.player_a_current_round_profit > 0,
+                                rx.heading(
+                                    f"당신은 {TrustGameState.player_a_current_round_profit} 포인트를 얻었습니다.",
+                                    size="5",
+                                    font_weight="bold",
+                                    color_scheme="gray",
+                                    text_align="center",
+                                ),
+                                rx.text(
+                                    f"당신은 {TrustGameState.player_a_current_round_profit} 포인트를 잃었습니다.",
+                                    size="5",
+                                    font_weight="bold",
+                                    color_scheme="red",
+                                    text_align="center",
+                                ),
+                            ),
+                            width="100%",
+                        ),
+                        rx.table.root(
+                            rx.table.header(
+                                rx.table.row(
+                                    rx.table.column_header_cell(""),
+                                    rx.table.column_header_cell("나", text_align="center"),
+                                    rx.table.column_header_cell("상대방", text_align="center"),
+                                )
+                            ),
+                            rx.table.body(
+                                rx.table.row(
+                                    rx.table.cell(rx.text("이번 라운드 순수익", color="#6b7280", size="3")),
+                                    rx.table.cell(
+                                        rx.text(
+                                            TrustGameState.player_a_current_round_profit,
+                                            size="6",
+                                            text_align="center",
+                                            font_weight="bold",
+                                        )
+                                    ),
+                                    rx.table.cell(
+                                        rx.text(
+                                            TrustGameState.player_b_current_round_profit, size="6", text_align="center"
+                                        )
+                                    ),
+                                ),
+                                rx.table.row(
+                                    rx.table.cell(rx.text("누적된 잔고", color="#6b7280", size="3")),
+                                    rx.table.cell(
+                                        rx.text(
+                                            TrustGameState.player_a_balance,
+                                            size="6",
+                                            text_align="center",
+                                            font_weight="bold",
+                                        )
+                                    ),
+                                    rx.table.cell(
+                                        rx.text(TrustGameState.player_b_balance, size="6", text_align="center")
+                                    ),
+                                ),
+                            ),
+                            width="320px",
+                            margin_y="2",
+                            size="1",
+                            variant="ghost",
+                        ),
+                        width="100%",
+                    ),
+                ),
+                align_items="center",
             ),
         ),
         # 결정 제출/다음 라운드 버튼 분기
         rx.cond(
             ~decision_submitted,
-            rx.button(
+            primary_button(
                 "결정 제출",
                 on_click=TrustGameState.main_algorithm,
-                width="100%",
-                size="3",
-                color_scheme="tomato",
-                font_weight="bold",
-                font_size="18px",
-                margin_top="8px",
-                margin_bottom="8px",
             ),
-            rx.button(
+            primary_button(
                 "다음 라운드로",
                 on_click=[
                     TrustGameState.go_to_next_round,
                     rx.set_value("amount_input_s2", ""),
                     rx.set_focus("amount_input_s2"),
                 ],
-                width="100%",
-                size="3",
                 color_scheme="orange",
-                font_weight="bold",
-                font_size="18px",
-                margin_top="8px",
-                margin_bottom="8px",
             ),
         ),
         spacing="4",
@@ -161,7 +206,6 @@ def section_2() -> rx.Component:
                     "padding": "32px 32px 16px 32px",
                     "maxWidth": "600px",
                     "width": "100%",
-                    "marginTop": "2em",
                 },
             ),
         ),

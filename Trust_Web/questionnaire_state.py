@@ -341,10 +341,12 @@ class InstructionState(rx.State):
 
     @rx.var
     def current_game_next_page_text(self) -> str:
+        print(f"[DEBUG] current_game_next_page_text: {self.current_game_config.get('next_page_text', 'Next')}")
         return self.current_game_config.get("next_page_text", "Next")
 
     @rx.var
     def current_game_next_page_url(self) -> str:
+        print(f"[DEBUG] current_game_next_page_url: {self.current_game_config.get('next_page_url', '/')}")
         return self.current_game_config.get("next_page_url", "/")  # Default to home if not specified
 
     @rx.event

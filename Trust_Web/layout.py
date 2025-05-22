@@ -118,6 +118,7 @@ def layout(content: rx.Component) -> rx.Component:
             padding="0",
             height="auto",
             overflow_y="visible",
+            style={"marginTop": "3em"},
         ),
         # Login modal (global, so it works from nav)
         rx.cond(
@@ -168,14 +169,6 @@ def layout(content: rx.Component) -> rx.Component:
                     text_align="center",
                     font_weight="500",
                 ),
-                rx.text(
-                    "한 번에 한 걸음씩 신뢰를 쌓아갑니다.",
-                    color="#a0aec0",
-                    font_size="1.2rem",
-                    text_align="center",
-                    margin_top="0.5em",
-                ),
-                spacing="1",
                 width="100%",
                 align_items="center",
             ),

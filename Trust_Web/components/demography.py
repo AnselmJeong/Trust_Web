@@ -1,5 +1,6 @@
 import reflex as rx
 from Trust_Web.demographic_state import DemographicState
+from .common_styles import primary_button
 
 
 # Helper function for creating diagnosis checkboxes
@@ -19,7 +20,7 @@ def demography_form() -> rx.Component:
     return rx.center(  # Center the entire form container
         rx.form(
             rx.vstack(
-                rx.heading("인구학적 정보와 정신과적 과거력", size="5", margin_bottom="1em"),
+                rx.heading("인구학적 정보와 정신과적 과거력", size="7", margin_bottom="1em"),
                 rx.divider(margin_bottom="1em"),
                 rx.grid(
                     # Column 1
@@ -131,7 +132,9 @@ def demography_form() -> rx.Component:
                         ),
                         # 발병시기 (Onset of illness - diagnosis related)
                         rx.form.field(
-                            rx.form.label(rx.text("📅 발병시기 (진단 관련)", size="4"), style={"margin_bottom": "0.5em"}),
+                            rx.form.label(
+                                rx.text("📅 발병시기 (진단 관련)", size="4"), style={"margin_bottom": "0.5em"}
+                            ),
                             rx.input(
                                 placeholder="예: 우울증 3년전, 공황장애 1년 6개월전",
                                 name="onset_of_diagnosis_details",
@@ -186,13 +189,13 @@ def demography_form() -> rx.Component:
                 # Removed the separate grid for medication/counseling sections
                 rx.center(
                     rx.form.submit(
-                        rx.button("제출", margin_top="2em", type_="submit", width="160px", color_scheme="orange")
+                        primary_button("제출", margin_top="2em", type_="submit", width="160px", color_scheme="orange")
                     ),
                     width="100%",
                 ),
                 spacing="4",  # Overall vstack spacing
                 align_items="stretch",  # Stretch items to fill width if needed
-                padding="2em",  # Reduced padding a bit
+                padding="1em",  # Reduced padding a bit
                 max_width="1000px",  # Max width for the vstack containing the form elements
                 width="100%",  # Ensure it takes up available space up to max_width
                 margin_x="auto",  # Added this to center the vstack itself

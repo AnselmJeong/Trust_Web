@@ -71,6 +71,10 @@ class TrustGameState(rx.State):
     user_email: str = ""
     user_id: str = ""
 
+    current_section: str = "section1"  # "section1" or "section2"
+
+    is_last_stage: bool = False
+
     @rx.event
     def set_amount_to_return(self, value: str) -> None:
         """Set the amount to return from string input."""
@@ -127,29 +131,38 @@ class TrustGameState(rx.State):
 
     @rx.event
     def go_to_next_round(self) -> None:
-        """Move to the next round, and reset round-specific variables."""
+        self.is_decision_submitted = False
         if self.current_round < NUM_ROUNDS:
             self.current_round += 1
             self.simulate_player_a_decision()
             self.amount_to_return = 0
             self.player_a_current_round_profit = 0
             self.player_b_current_round_profit = 0
-            self.is_decision_submitted = False
         else:
             self.current_round = 1
             self.player_a_current_round_profit = 0
             self.player_b_current_round_profit = 0
-            self.is_decision_submitted = False
-            return self.proceed_to_section_transition()
+            if self.current_section == "section2":
+                self.current_stage += 1
+                if self.current_stage == len(self.shuffled_profiles):
+                    self.is_last_stage = True
+                else:
+                    self.is_last_stage = False
+                return self.proceed_to_stage_transition()
+            else:
+                self.is_last_stage = False
+                return self.proceed_to_section_transition()
 
     @rx.event
     def start_section_1(self) -> None:
         """Mark user as ready to start the experiment section 1 (Player B Trust Game)."""
+        print("[DEBUG] Section 1 start")
         return self.proceed_to_section1()
 
     @rx.event
     def start_section_2(self) -> None:
         """Start Section 2 after the transition page."""
+        print("[DEBUG] Section 2 start")
         return self.proceed_to_section2()
 
     @rx.event
@@ -172,13 +185,6 @@ class TrustGameState(rx.State):
 
             # Calculate Player B's return amount based on the profile
             self.amount_to_return = self.calculate_player_b_return()
-
-            # for debugging
-            # print(f"current_personality: {self.player_b_personality}")
-            # print(f"amount_sent: {self.amount_to_send}")
-            # print(f"amount_returned: {self.amount_to_return}")
-            # print(f"user_email: {self.user_email}")
-            # print(f"user_id: {self.user_id}")
 
             # Calculate profits
             player_a_profit: int = self.amount_to_return - self.amount_to_send
@@ -206,34 +212,9 @@ class TrustGameState(rx.State):
             }
 
             self.round_history.append(round_data)
-            # save_experiment_data(user_local_id=self.user_id, data=round_data)
-
-            # Move to next round or stage
-            if self.current_round < NUM_ROUNDS:
-                print(f"[DEBUG] current_round: {self.current_round}")
-                print(f"[DEBUG] current_stage: {self.current_stage}")
-
-                self.current_round += 1
-                self.amount_to_send = 0
-                self.player_a_current_round_profit = 0
-                self.player_b_current_round_profit = 0
-                return None  # Stay on same page
-            else:
-                # Move to next stage
-                self.current_stage += 1
-                print(f"[DEBUG] current_stage: {self.current_stage}, shuffled_profiles: {len(self.shuffled_profiles)}")
-                print(f"[DEBUG] is_stage_transition(before): {self.is_stage_transition}")
-                if self.current_stage >= len(self.shuffled_profiles):
-                    # All stages completed, move to final page
-                    print(
-                        f"[DEBUG] FINAL: current_stage={self.current_stage}, shuffled_profiles={len(self.shuffled_profiles)}"
-                    )
-                    return rx.redirect("/app/final")
-                else:
-                    # Show stage transition page
-                    result = self.proceed_to_stage_transition()
-                    print(f"[DEBUG] is_stage_transition(after): {self.is_stage_transition}")
-                    return result
+            self.is_decision_submitted = True
+            # 결과만 보여주고, 라운드/스테이지 이동은 go_to_next_round에서만 처리
+            return None
         except ValueError:
             pass
 
@@ -261,20 +242,20 @@ class TrustGameState(rx.State):
 
     @rx.event
     def start_next_stage(self) -> None:
-        """Start the next stage after the transition page."""
+        self.is_decision_submitted = False
         self.is_stage_transition = False
         self.current_round = 1
         self.amount_to_send = 0
         self.player_a_current_round_profit = 0
         self.player_b_current_round_profit = 0
         self.player_b_balance = 0
-        self.round_history = []
         self.select_player_b_profile()
         return rx.redirect("/app/section2")
 
     @rx.event
     def reset_game_state(self) -> None:
-        """Reset all game state variables. Called by AuthState.logout."""
+        self.is_decision_submitted = False
+        self.is_last_stage = False
         print("[TRUST_GAME_STATE] reset_game_state called")
         self.current_round = 1
         self.current_stage = 0
@@ -318,7 +299,8 @@ class TrustGameState(rx.State):
 
     @rx.event
     def proceed_to_section1(self):
-        """Navigate to trust game section 1 (Player B)."""
+        self.current_section = "section1"
+        self.is_decision_submitted = False
         self.is_ready = True
         self.player_a_balance = INITIAL_BALANCE
         self.player_b_balance = 0  # Player B starts with 0 balance in section 1
@@ -326,34 +308,39 @@ class TrustGameState(rx.State):
         self.player_a_current_round_profit = 0
         self.player_b_current_round_profit = 0
         self.simulate_player_a_decision()
+        self.is_last_stage = False
         return rx.redirect("/app/section1")
 
     @rx.event
     def proceed_to_section_transition(self):
         """Navigate to section transition page."""
-        self.current_round = 1
-        self.player_a_current_round_profit = 0
-        self.player_b_current_round_profit = 0
+        # self.current_round = 1
+        # self.player_a_current_round_profit = 0
+        # self.player_b_current_round_profit = 0
         return rx.redirect("/app/instructions?game=section2")
 
     @rx.event
     def proceed_to_section2(self):
-        """Navigate to trust game section 2 (Player A)."""
+        self.current_section = "section2"
+        self.is_decision_submitted = False
         # Shuffle the profiles and store them
         profiles = list(PERSONALITY_PROFILES.items())
         random.shuffle(profiles)
         self.shuffled_profiles = profiles
-
-        # Initialize first stage
+        print(f"[DEBUG] proceed_to_section2: shuffled_profiles={len(self.shuffled_profiles)}")
+        # Initialize first stage (start_next_stage의 stage 초기화 코드 복사)
+        self.is_stage_transition = False
         self.current_stage = 0
         self.current_round = 1
-        self.player_a_balance = INITIAL_BALANCE
-        self.player_b_balance = 0
         self.amount_to_send = 0
-        self.amount_to_return = 0
         self.player_a_current_round_profit = 0
         self.player_b_current_round_profit = 0
+        self.player_b_balance = 0
+        self.round_history = []
         self.select_player_b_profile()
+        self.player_a_balance = INITIAL_BALANCE
+        self.amount_to_return = 0
+        self.is_last_stage = False
         return rx.redirect("/app/section2")
 
     @rx.event
@@ -361,3 +348,77 @@ class TrustGameState(rx.State):
         """Navigate to stage transition page."""
         self.is_stage_transition = True
         return rx.redirect("/app/stage-transition")
+
+    @rx.var
+    def stage_total_invested(self) -> int:
+        # Sum of amount_sent for the current stage
+        return sum(
+            r.get("amount_sent", 0)
+            for r in self.round_history
+            if r.get("stage") == self.current_stage - 1  # stage_transition is shown after stage increment
+        )
+
+    @rx.var
+    def stage_total_returned(self) -> int:
+        # Sum of amount_returned for the current stage
+        return sum(r.get("amount_returned", 0) for r in self.round_history if r.get("stage") == self.current_stage - 1)
+
+    @rx.var
+    def stage_net_profit(self) -> int:
+        # Net profit for player A in the stage
+        return sum(
+            r.get("player_a_current_round_profit", 0)
+            for r in self.round_history
+            if r.get("stage") == self.current_stage - 1
+        )
+
+    @rx.var
+    def stage_end_balance(self) -> int:
+        # Player A's balance at the end of the stage (after last round)
+        # This is just the current balance after the stage, so use player_a_balance
+        return self.player_a_balance
+
+    @rx.var
+    def all_stages_total_invested(self) -> list:
+        # List of total invested per stage
+        if not self.shuffled_profiles:
+            return []
+        num_stages = len(self.shuffled_profiles)
+        return [
+            sum(r.get("amount_sent", 0) for r in self.round_history if r.get("stage") == i) for i in range(num_stages)
+        ]
+
+    @rx.var
+    def all_stages_total_returned(self) -> list:
+        # List of total returned per stage
+        if not self.shuffled_profiles:
+            return []
+        num_stages = len(self.shuffled_profiles)
+        return [
+            sum(r.get("amount_returned", 0) for r in self.round_history if r.get("stage") == i)
+            for i in range(num_stages)
+        ]
+
+    @rx.var
+    def all_stages_net_profit(self) -> list:
+        # List of net profit per stage
+        if not self.shuffled_profiles:
+            return []
+        num_stages = len(self.shuffled_profiles)
+        return [
+            sum(r.get("player_a_current_round_profit", 0) for r in self.round_history if r.get("stage") == i)
+            for i in range(num_stages)
+        ]
+
+    @rx.var
+    def all_stages_end_balance(self) -> list:
+        # List of end balance per stage (cumulative)
+        if not self.shuffled_profiles:
+            return []
+        num_stages = len(self.shuffled_profiles)
+        balances = []
+        running_balance = self.player_a_balance - sum(self.all_stages_net_profit)  # back-calculate initial
+        for i in range(num_stages):
+            running_balance += self.all_stages_net_profit[i]
+            balances.append(running_balance)
+        return balances

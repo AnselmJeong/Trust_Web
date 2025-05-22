@@ -1,6 +1,7 @@
 import reflex as rx
 from ..questionnaire_state import QuestionnaireState
 from typing import List
+from ..components.common_styles import primary_button
 
 # It's good practice to define styles or import them if they are common
 # For this component, we'll define some basic styles inline or use Radix defaults.
@@ -68,88 +69,110 @@ def questionnaire_ui_component() -> rx.Component:
 
     return rx.vstack(
         rx.heading(QuestionnaireState.current_questionnaire, size="7", margin_bottom="1em"),
-        rx.vstack(
-            rx.table.root(
-                rx.table.header(
-                    rx.table.row(
-                        rx.table.column_header_cell("번호", style={**header_style, "width": "7%"}),
-                        rx.table.column_header_cell("문항", style={**header_style, "width": "48%"}),
-                        rx.table.column_header_cell(
-                            anchors_header_comp(QuestionnaireState.current_likert_anchors),
-                            style={
-                                **header_style,
-                                "width": "45%",
-                                "padding_left": "0px",
-                                "padding_right": "0px",
-                            },
-                        ),
-                    )
-                ),
-                rx.table.body(
-                    rx.foreach(
-                        QuestionnaireState.current_items,
-                        lambda item_text, item_idx: rx.table.row(
-                            rx.table.cell(item_idx + 1, style=cell_style),
-                            rx.table.cell(
-                                item_text,
-                                style=item_text_cell_style,
+        rx.center(
+            rx.vstack(
+                rx.table.root(
+                    rx.table.header(
+                        rx.table.row(
+                            rx.table.column_header_cell("번호", style={**header_style, "width": "7%"}),
+                            rx.table.column_header_cell("문항", style={**header_style, "width": "48%"}),
+                            rx.table.column_header_cell(
+                                anchors_header_comp(QuestionnaireState.current_likert_anchors),
+                                style={
+                                    **header_style,
+                                    "width": "45%",
+                                    "padding_left": "0px",
+                                    "padding_right": "0px",
+                                },
                             ),
-                            rx.table.cell(
-                                rx.radio(
-                                    items=QuestionnaireState.current_likert_options_as_strings,
-                                    value=rx.cond(
-                                        QuestionnaireState.current_responses[item_idx].is_not_none(),
-                                        QuestionnaireState.current_responses[item_idx],
-                                        "",
-                                    ),
-                                    on_change=lambda selected_value: QuestionnaireState.set_response(
-                                        item_idx,
-                                        selected_value,
-                                    ),
-                                    direction="row",
-                                    spacing="4",
-                                    width="100%",
-                                    justify_content="space-around",
-                                    color_scheme="orange",
+                        )
+                    ),
+                    rx.table.body(
+                        rx.foreach(
+                            QuestionnaireState.current_items,
+                            lambda item_text, item_idx: rx.table.row(
+                                rx.table.cell(
+                                    item_idx + 1,
+                                    style={**cell_style, "word_break": "break-word", "white_space": "pre-line"},
                                 ),
-                                style=radio_container_cell_style,
+                                rx.table.cell(
+                                    item_text,
+                                    style={
+                                        **item_text_cell_style,
+                                        "word_break": "break-word",
+                                        "white_space": "pre-line",
+                                    },
+                                ),
+                                rx.table.cell(
+                                    rx.radio(
+                                        items=QuestionnaireState.current_likert_options_as_strings,
+                                        value=rx.cond(
+                                            QuestionnaireState.current_responses[item_idx].is_not_none(),
+                                            QuestionnaireState.current_responses[item_idx],
+                                            "",
+                                        ),
+                                        on_change=lambda selected_value: QuestionnaireState.set_response(
+                                            item_idx,
+                                            selected_value,
+                                        ),
+                                        direction="row",
+                                        spacing="4",
+                                        width="100%",
+                                        justify_content="space-around",
+                                        color_scheme="orange",
+                                    ),
+                                    style={
+                                        **radio_container_cell_style,
+                                        "word_break": "break-word",
+                                        "white_space": "pre-line",
+                                    },
+                                ),
                             ),
-                        ),
-                    )
+                        )
+                    ),
+                    variant="surface",
+                    size="2",
+                    width="100%",
+                    style={
+                        "border_collapse": "collapse",
+                        "table_layout": "fixed",
+                        "max_width": "800px",
+                        "word_break": "break-word",
+                        "white_space": "pre-line",
+                    },
                 ),
-                variant="surface",
-                size="2",
-                width="100%",
-                style={
-                    "border_collapse": "collapse",
-                    "table_layout": "fixed",
-                },
-            ),
-            rx.spacer(height="2em"),
-            rx.button(
-                "제출하기",
-                on_click=lambda: QuestionnaireState.submit_questionnaire(),
-                size="3",
-                width="100%",
-                color_scheme="orange",
-            ),
-            rx.cond(
-                QuestionnaireState.error_message != "",
-                rx.callout.root(
-                    rx.callout.icon(rx.icon("circle_alert")),
-                    rx.callout.text(QuestionnaireState.error_message),
-                    color_scheme="red",
-                    variant="soft",
-                    margin_top="1em",
+                rx.spacer(height="2em"),
+                primary_button(
+                    "제출하기",
+                    on_click=lambda: QuestionnaireState.submit_questionnaire(),
+                    width="100%",
+                    color_scheme="orange",
                 ),
+                rx.cond(
+                    QuestionnaireState.error_message != "",
+                    rx.callout.root(
+                        rx.callout.icon(rx.icon("circle_alert")),
+                        rx.callout.text(QuestionnaireState.error_message),
+                        color_scheme="red",
+                        variant="soft",
+                        margin_top="1em",
+                    ),
+                ),
+                align_items="stretch",
+                spacing="5",
+                width="100%",
+                max_width="800px",
+                margin="auto",
+                padding="1em",
             ),
-            align_items="stretch",
-            spacing="5",
             width="100%",
-            max_width="1400px",
-            margin="auto",
-            padding="1em",
         ),
+        align_items="stretch",
+        spacing="5",
+        width="100%",
+        padding="0.5em",  # Reduced padding a bit
+        max_width="1000px",
+        margin_x="auto",  # Center the vstack itself
     )
 
 

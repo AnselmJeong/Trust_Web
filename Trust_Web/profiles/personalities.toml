@@ -4,7 +4,7 @@ In every transaction, you prioritize mutual benefit, ensuring that your partnerâ
 Your goal is to foster long-term, trust-based relationships that go beyond short-term gain.
 """
 
-[reciprocator.parameters]
+[trustworthy.parameters]
 base_fairness = 0.5
 fairness_variance = 0.1
 generosity_bias = 0.05

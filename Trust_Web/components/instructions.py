@@ -2,8 +2,8 @@ import reflex as rx
 
 # Remove TrustGameState import if not used for other specific logic
 # from Trust_Web.trust_game_state import TrustGameState
-from Trust_Web.questionnaire_state import InstructionState  # Import InstructionState
-from .common_styles import COLORS, STYLES, page_container  # Assuming these are still relevant
+from Trust_Web.instruction_state import InstructionState  # Import InstructionState from new location
+from .common_styles import COLORS, STYLES, page_container, primary_button  # Assuming these are still relevant
 from Trust_Web.layout import layout  # Import the main layout
 from Trust_Web.trust_game_state import TrustGameState  # 추가: section1 시작 이벤트를 위해 import
 
@@ -25,7 +25,7 @@ def dynamic_instructions_page() -> rx.Component:
 
     content_vstack = rx.vstack(
         error_display,  # Display error if any
-        rx.heading(InstructionState.current_game_title, size="5", weight="bold", text_align="center", mb="1em"),
+        rx.heading(InstructionState.current_game_title, size="7", weight="bold", text_align="center", mb="2em"),
         rx.cond(
             InstructionState.current_game_rules.length() > 0,
             rx.vstack(
@@ -58,28 +58,40 @@ def dynamic_instructions_page() -> rx.Component:
             rx.text("No rules available for this game or game not loaded.", text_align="center", color="gray"),
         ),
         rx.flex(
-            rx.cond(
-                InstructionState.current_game_next_page_url == "/app/section1",
-                rx.button(
-                    rx.hstack(
-                        rx.text(InstructionState.current_game_next_page_text),
-                        spacing="2",
+            rx.match(
+                InstructionState.current_game_next_page_url,
+                (
+                    "/app/section1",
+                    primary_button(
+                        rx.hstack(
+                            rx.text(InstructionState.current_game_next_page_text),
+                            spacing="2",
+                        ),
+                        on_click=TrustGameState.start_section_1,
+                        color_scheme="orange",
                     ),
-                    on_click=TrustGameState.start_section_1,
-                    style=STYLES.get("button", {}),
-                    color_scheme="orange",
                 ),
-                rx.button(
+                (
+                    "/app/section2",
+                    primary_button(
+                        rx.hstack(
+                            rx.text(InstructionState.current_game_next_page_text),
+                            spacing="2",
+                        ),
+                        on_click=TrustGameState.start_section_2,
+                        color_scheme="blue",
+                    ),
+                ),
+                primary_button(
                     rx.hstack(
                         rx.text(InstructionState.current_game_next_page_text),
                         spacing="2",
                     ),
                     on_click=lambda: rx.redirect(InstructionState.current_game_next_page_url),
-                    style=STYLES.get("button", {}),
-                    color_scheme="orange",
+                    color_scheme="gray",
                 ),
             ),
-            justify="center",  # Center button
+            justify="center",
             width="100%",
             mt="1em",
         ),
@@ -93,7 +105,19 @@ def dynamic_instructions_page() -> rx.Component:
         min_height=None,  # Remove min_height if present
         overflow_y="visible",  # Ensure no forced scroll
     )
-    return page_container(content_vstack, height="auto", overflow_y="visible")
+    return rx.center(
+        rx.box(
+            page_container(content_vstack, height="auto", overflow_y="visible"),
+            max_width="800px",
+            width="100%",
+            style={
+                "boxShadow": "0 4px 16px 0 rgba(0,0,0,0.12)",
+                "borderRadius": "16px",
+                "background": "white",
+            },
+        ),
+        width="100%",
+    )
 
 
 # The actual page component that will be routed to /app/instructions

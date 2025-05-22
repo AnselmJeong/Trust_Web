@@ -95,7 +95,7 @@ def primary_button(text: str, **kwargs) -> rx.Component:
         button_styles.update(passed_styles)  # passed_styles will override keys in button_styles
 
     # Pass the merged styles as the 'style' prop, and remaining kwargs directly
-    return rx.button(text, style=button_styles, **kwargs)
+    return rx.button(text, style=button_styles, size="3", **kwargs)
 
 
 def section_heading(text: str, **kwargs) -> rx.Component:

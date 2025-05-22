@@ -69,8 +69,10 @@ STYLES = {
 
 # Page component mapping dictionary
 PAGE_COMPONENT_MAPPING = {
-    "demography": rx.center(demography_form(), width="100%"),
-    "questionnaire": rx.center(questionnaire_ui_component(), width="100%"),
+    # "demography": rx.center(demography_form(), width="100%"),
+    # "questionnaire": rx.center(questionnaire_ui_component(), width="100%"),
+    "demography": demography_form(),
+    "questionnaire": questionnaire_ui_component(),
     "public-goods": public_goods_game_component(),
     "section1": section_1(),
     "section2": section_2(),
