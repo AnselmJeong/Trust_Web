@@ -16,9 +16,9 @@ end_game_fairness_drop = 0.1
 
 [strategist]
 description = """A strategist who prioritizes maximizing returns above all else.
-Rather than indiscriminately avoiding profit sharing, they employ a calculated approach: 
+Rather than indiscriminately avoiding payoff sharing, they employ a calculated approach: 
 the more the counterpart invests, the greater the returns they receive.
-This tactic is designed to incentivize higher investment while ultimately serving their own profit-maximizing goal.
+This tactic is designed to incentivize higher investment while ultimately serving their own payoff-maximizing goal.
 """
 
 [strategist.parameters]
@@ -43,7 +43,7 @@ large_investment_bias = 0.0
 end_game_fairness_drop = 0.0
 
 [opportunist]
-description = """An opportunistic player who appears generous, but strategically exploits situations to maximize profit.
+description = """An opportunistic player who appears generous, but strategically exploits situations to maximize payoff.
 You seek high-reward moments and adapt your generosity accordingly: 
 when the investment is small, you return a substantial amount to build trust.
 However, as investments grow, you significantly reduce returns—especially toward the end of the game, when future consequences no longer matter.

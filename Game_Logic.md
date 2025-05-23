@@ -17,8 +17,8 @@ TrustGameState.current_page = 1
 	•	received_amount는 amount_to_send * PROLIFERATION_FACTOR로 계산됨 (3배)
 	2.	사용자는 이 받은 금액 중 일부 (amount_to_return)를 반환
 	•	submit_player_b_decision() 호출 시:
-	•	player_b_profit = received_amount - amount_to_return
-	•	player_a_profit = amount_to_return - amount_to_send
+	•	player_b_payoff = received_amount - amount_to_return
+	•	player_a_payoff = amount_to_return - amount_to_send
 	•	두 플레이어의 balance 업데이트
 	•	다음 라운드로 이동 (current_round += 1)하거나 다음 섹션으로 전환 (current_page = 2)
 	3.	총 NUM_ROUNDS (기본 10회) 반복
@@ -46,7 +46,7 @@ base_return = received_amount * base_return_rate
 최소 0, 최대 received_amount 사이로 반환 금액 결정
 
 	3.	각 라운드에서:
-	•	amount_to_send, amount_to_return, profit, personality, timestamp 등을 저장 (round_history, save_experiment_data)
+	•	amount_to_send, amount_to_return, payoff, personality, timestamp 등을 저장 (round_history, save_experiment_data)
 	•	10라운드 후 current_stage 증가 (다음 성격 프로파일로 이동)
 	•	모든 스테이지가 끝나면 current_page = 4 (End 페이지)
 

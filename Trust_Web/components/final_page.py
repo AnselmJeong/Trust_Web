@@ -51,7 +51,7 @@ def final_page() -> rx.Component:
                             rx.table.row(
                                 rx.table.cell(rx.text("순이익", color="#6b7280", size="3")),
                                 rx.foreach(
-                                    TrustGameState.all_stages_net_profit,
+                                    TrustGameState.all_stages_net_payoff,
                                     lambda val: rx.table.cell(rx.text(val, size="6", text_align="center")),
                                 ),
                             ),

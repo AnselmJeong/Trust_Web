@@ -104,16 +104,16 @@ def section_2() -> rx.Component:
                     rx.vstack(
                         rx.center(
                             rx.cond(
-                                TrustGameState.player_a_current_round_profit > 0,
+                                TrustGameState.player_a_current_round_payoff > 0,
                                 rx.heading(
-                                    f"당신의 순수익은 {TrustGameState.player_a_current_round_profit} 포인트 입니다.",
+                                    f"당신의 순수익은 {TrustGameState.player_a_current_round_payoff} 포인트 입니다.",
                                     size="5",
                                     font_weight="bold",
                                     color_scheme="gray",
                                     text_align="center",
                                 ),
                                 rx.text(
-                                    f"당신의 순손실은 {TrustGameState.player_a_current_round_profit} 포인트 입니다.",
+                                    f"당신의 순손실은 {TrustGameState.player_a_current_round_payoff} 포인트 입니다.",
                                     size="5",
                                     font_weight="bold",
                                     color_scheme="tomato",
@@ -135,7 +135,7 @@ def section_2() -> rx.Component:
                                     rx.table.cell(rx.text("이번 라운드 순수익", color="#6b7280", size="3")),
                                     rx.table.cell(
                                         rx.text(
-                                            TrustGameState.player_a_current_round_profit,
+                                            TrustGameState.player_a_current_round_payoff,
                                             size="6",
                                             text_align="center",
                                             font_weight="bold",
@@ -143,7 +143,7 @@ def section_2() -> rx.Component:
                                     ),
                                     rx.table.cell(
                                         rx.text(
-                                            TrustGameState.player_b_current_round_profit, size="6", text_align="center"
+                                            TrustGameState.player_b_current_round_payoff, size="6", text_align="center"
                                         )
                                     ),
                                 ),

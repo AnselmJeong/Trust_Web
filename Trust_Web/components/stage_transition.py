@@ -48,7 +48,7 @@ def stage_transition() -> rx.Component:
                             ),
                             rx.table.row(
                                 rx.table.cell(rx.text("순이익", color="#6b7280", size="3")),
-                                rx.table.cell(rx.text(TrustGameState.stage_net_profit, size="6", text_align="center")),
+                                rx.table.cell(rx.text(TrustGameState.stage_net_payoff, size="6", text_align="center")),
                             ),
                             rx.table.row(
                                 rx.table.cell(rx.text("잔고 (스테이지 종료 시점)", color="#6b7280", size="3")),

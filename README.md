@@ -67,21 +67,21 @@ http://localhost:3000
 - Receive an amount from Player A
 - Amount is multiplied by 2
 - Decide how much to return to Player A
-- Profit = Amount received - Amount returned
+- payoff = Amount received - Amount returned
 
 ### Section 2 (Player A)
 - Start with 20 currency units
 - Can send up to 50% of current balance
 - Amount sent is multiplied by 2
 - AI Player B decides return amount
-- Profit = Amount returned - Amount sent
+- payoff = Amount returned - Amount sent
 
 ## Data Collection
 
 All experiment data is stored in Firebase Realtime Database, including:
 - User information
 - Round-by-round decisions
-- Profits and balances
+- payoffs and balances
 - Timestamps
 
 ## License

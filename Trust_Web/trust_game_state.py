@@ -51,11 +51,11 @@ class TrustGameState(rx.State):
     # balance는 section이나 stage가 바뀌면 초기화된다.
     # 그러나 round가 바뀔 때는 이전 금액에 누적된다.
     player_b_balance: int = 0  # 수탁자의 현재 잔액
-    player_b_current_round_profit: float = 0  # 수탁자가 현재 라운드에서 얻은 이익
+    player_b_current_round_payoff: float = 0  # 수탁자가 현재 라운드에서 얻은 이익
 
     # Player A state
     player_a_balance: int = 0  # 투자자의 현재 잔액
-    player_a_current_round_profit: float = 0  # 투자자가 현재 라운드에서 얻은 이익
+    player_a_current_round_payoff: float = 0  # 투자자가 현재 라운드에서 얻은 이익
 
     # Transaction data
     amount_to_send: int = 0  # 투자자(player_a)가 투자할 금액
@@ -123,26 +123,28 @@ class TrustGameState(rx.State):
         This function is executed when a human participant plays as player_b in the first section.
         """
         try:
-            self.player_b_current_round_profit = self.received_amount - self.amount_to_return
-            self.player_a_current_round_profit = self.amount_to_return - self.amount_to_send
-            self.player_b_balance += self.player_b_current_round_profit
-            self.player_a_balance += self.player_a_current_round_profit
+            self.player_b_current_round_payoff = self.received_amount - self.amount_to_return
+            self.player_a_current_round_payoff = self.amount_to_return - self.amount_to_send
+            self.player_b_balance += self.player_b_current_round_payoff
+            self.player_a_balance += self.player_a_current_round_payoff
             self.is_decision_submitted = True
             # Section 1: 실험 데이터 저장
             if self.current_section == "section1":
                 transaction = {
                     "user_id": self.user_id,
                     "user_email": self.user_email,
-                    "game_name": "trust game",
+                    "game_name": "trust_game",
                     "section_num": 1,
                     "round": self.get_value("current_round"),
                     "amount_sent": self.get_value("amount_to_send"),
                     "amount_returned": self.get_value("amount_to_return"),
-                    "human_profit": self.get_value("amount_to_send") - self.get_value("amount_to_return"),
-                    "player_b_profit": self.get_value("amount_to_return") - (self.get_value("amount_to_send") * PROLIFERATION_FACTOR),
+                    "player_a_payoff": self.get_value("player_a_current_round_payoff"),
+                    "player_a_balance": self.get_value("player_a_balance"),
+                    "player_b_payoff": self.get_value("player_b_current_round_payoff"),
+                    "player_b_balance": self.get_value("player_b_balance"),
                     "game_began_at": self.get_value("game_began_at"),
                 }
-                save_experiment_data(self.user_id, transaction)
+                save_experiment_data(self.user_id, transaction, game_name="trust_game", section_num=1, document_id=f"round_{self.current_round}")
             # Move to next round or section
             # 다음 라운드로 이동은 별도 이벤트(go_to_next_round)에서 처리
             pass
@@ -156,22 +158,42 @@ class TrustGameState(rx.State):
             self.current_round += 1
             self.simulate_player_a_decision()
             self.amount_to_return = 0
-            self.player_a_current_round_profit = 0
-            self.player_b_current_round_profit = 0
+            self.player_a_current_round_payoff = 0
+            self.player_b_current_round_payoff = 0
         else:
             self.current_round = 1
-            self.player_a_current_round_profit = 0
-            self.player_b_current_round_profit = 0
-            if self.current_section == "section2":
+            self.player_a_current_round_payoff = 0
+            self.player_b_current_round_payoff = 0
+
+            if self.current_section == "section1":
+                # # Save final balances for Section 1
+                # section1_final_data = {
+                #     "user_id": self.user_id,
+                #     "user_email": self.user_email,
+                #     "game_name": "trust_game",
+                #     "section_num": 1,
+                #     "document_type": "section_summary",
+                #     "s1_user_final_balance": self.player_b_balance,  # User is Player B in Section 1
+                #     "s1_opponent_final_balance": self.player_a_balance, # Opponent is Player A in Section 1
+                #     "game_began_at": self.game_began_at,
+                #     "section_ended_at": datetime.datetime.now().isoformat(),
+                # }
+                # # Save summary directly under trust_game collection, not inside section1 subcollection
+                # save_experiment_data(self.user_id, section1_final_data, game_name="trust_game", document_id="section1_summary")
+                
+                # # Reset balances for the next section or game phase
+                # self.player_a_balance = INITIAL_BALANCE
+                # self.player_b_balance = 0 
+                self.is_last_stage = False
+                return self.proceed_to_section_transition() # This leads to S2 instructions
+            
+            elif self.current_section == "section2":
                 self.current_stage += 1
                 if self.current_stage == len(self.shuffled_profiles):
                     self.is_last_stage = True
                 else:
                     self.is_last_stage = False
                 return self.proceed_to_stage_transition()
-            else:
-                self.is_last_stage = False
-                return self.proceed_to_section_transition()
 
     @rx.event
     def start_section_1(self) -> None:
@@ -209,15 +231,15 @@ class TrustGameState(rx.State):
             # Calculate Player B's return amount based on the profile
             self.amount_to_return = self.calculate_player_b_return()
 
-            # Calculate profits
-            player_a_profit: int = self.amount_to_return - self.amount_to_send
-            player_b_profit: int = self.received_amount - self.amount_to_return
+            # Calculate payoffs
+            player_a_payoff: int = self.amount_to_return - self.amount_to_send
+            player_b_payoff: int = self.received_amount - self.amount_to_return
 
-            # Update balances and profits
-            self.player_a_balance += player_a_profit
-            self.player_b_balance += player_b_profit
-            self.player_a_current_round_profit = player_a_profit
-            self.player_b_current_round_profit = player_b_profit
+            # Update balances and payoffs
+            self.player_a_balance += player_a_payoff
+            self.player_b_balance += player_b_payoff
+            self.player_a_current_round_payoff = player_a_payoff
+            self.player_b_current_round_payoff = player_b_payoff
 
             # Record round
             round_data: Dict[str, Any] = {
@@ -228,8 +250,8 @@ class TrustGameState(rx.State):
                 "personality": self.player_b_personality,
                 "amount_sent": self.amount_to_send,
                 "amount_returned": self.amount_to_return,
-                "player_a_current_round_profit": player_a_profit,
-                "player_b_current_round_profit": player_b_profit,
+                "player_a_current_round_payoff": player_a_payoff,
+                "player_b_current_round_payoff": player_b_payoff,
                 "ai_message": self.message_b,
                 "timestamp": datetime.datetime.now().isoformat(),
             }
@@ -241,7 +263,7 @@ class TrustGameState(rx.State):
                 transaction = {
                     "user_id": self.user_id,
                     "user_email": self.user_email,
-                    "game_name": "trust game",
+                    "game_name": "trust_game",
                     "section_num": 2,
                     "stage_num": self.get_value("current_stage"),
                     "round": self.get_value("current_round"),
@@ -249,8 +271,10 @@ class TrustGameState(rx.State):
                     "amount_sent": self.get_value("amount_to_send"),
                     "amount_returned": self.get_value("amount_to_return"),
                     "message": self.get_value("message_b"),
-                    "human_profit": player_a_profit,
-                    "player_b_profit": player_b_profit,
+                    "human_payoff": player_a_payoff,
+                    "human_balance": self.get_value("player_a_balance"),    
+                    "player_b_payoff": player_b_payoff,
+                    "player_b_balance": self.get_value("player_b_balance"),
                     "game_began_at": self.get_value("game_began_at"),
                 }
                 save_experiment_data(self.user_id, transaction)
@@ -289,8 +313,8 @@ class TrustGameState(rx.State):
         self.is_stage_transition = False
         self.current_round = 1
         self.amount_to_send = 0
-        self.player_a_current_round_profit = 0
-        self.player_b_current_round_profit = 0
+        self.player_a_current_round_payoff = 0
+        self.player_b_current_round_payoff = 0
         self.player_b_balance = 0
         self.select_player_b_profile()
         return rx.redirect("/app/section2")
@@ -308,8 +332,8 @@ class TrustGameState(rx.State):
         self.amount_to_return = 0
         self.player_a_balance = INITIAL_BALANCE
         self.player_b_balance = 0
-        self.player_a_current_round_profit = 0
-        self.player_b_current_round_profit = 0
+        self.player_a_current_round_payoff = 0
+        self.player_b_current_round_payoff = 0
         self.round_history = []
         self.shuffled_profiles = []
         self.player_b_profile = None
@@ -336,8 +360,8 @@ class TrustGameState(rx.State):
     #     return rx.redirect("/app/instructions?game=section1")
 
     @rx.var
-    def player_a_total_profit_in_section2(self) -> int:
-        """Calculates the total profit for Player A in Section 2 so far."""
+    def player_a_total_payoff_in_section2(self) -> int:
+        """Calculates the total payoff for Player A in Section 2 so far."""
         return self.player_a_balance - INITIAL_BALANCE
 
     @rx.event
@@ -348,8 +372,8 @@ class TrustGameState(rx.State):
         self.player_a_balance = INITIAL_BALANCE
         self.player_b_balance = 0  # Player B starts with 0 balance in section 1
         self.current_round = 1
-        self.player_a_current_round_profit = 0
-        self.player_b_current_round_profit = 0
+        self.player_a_current_round_payoff = 0
+        self.player_b_current_round_payoff = 0
         self.simulate_player_a_decision()
         self.is_last_stage = False
         return rx.redirect("/app/section1")
@@ -358,8 +382,8 @@ class TrustGameState(rx.State):
     def proceed_to_section_transition(self):
         """Navigate to section transition page."""
         # self.current_round = 1
-        # self.player_a_current_round_profit = 0
-        # self.player_b_current_round_profit = 0
+        # self.player_a_current_round_payoff = 0
+        # self.player_b_current_round_payoff = 0
         return rx.redirect("/app/instructions?game=section2")
 
     @rx.event
@@ -376,8 +400,8 @@ class TrustGameState(rx.State):
         self.current_stage = 0
         self.current_round = 1
         self.amount_to_send = 0
-        self.player_a_current_round_profit = 0
-        self.player_b_current_round_profit = 0
+        self.player_a_current_round_payoff = 0
+        self.player_b_current_round_payoff = 0
         self.player_b_balance = 0
         self.round_history = []
         self.select_player_b_profile()
@@ -407,10 +431,10 @@ class TrustGameState(rx.State):
         return sum(r.get("amount_returned", 0) for r in self.round_history if r.get("stage") == self.current_stage - 1)
 
     @rx.var
-    def stage_net_profit(self) -> int:
-        # Net profit for player A in the stage
+    def stage_net_payoff(self) -> int:
+        # Net payoff for player A in the stage
         return sum(
-            r.get("player_a_current_round_profit", 0)
+            r.get("player_a_current_round_payoff", 0)
             for r in self.round_history
             if r.get("stage") == self.current_stage - 1
         )
@@ -443,13 +467,13 @@ class TrustGameState(rx.State):
         ]
 
     @rx.var
-    def all_stages_net_profit(self) -> list:
-        # List of net profit per stage
+    def all_stages_net_payoff(self) -> list:
+        # List of net payoff per stage
         if not self.shuffled_profiles:
             return []
         num_stages = len(self.shuffled_profiles)
         return [
-            sum(r.get("player_a_current_round_profit", 0) for r in self.round_history if r.get("stage") == i)
+            sum(r.get("player_a_current_round_payoff", 0) for r in self.round_history if r.get("stage") == i)
             for i in range(num_stages)
         ]
 
@@ -460,8 +484,8 @@ class TrustGameState(rx.State):
             return []
         num_stages = len(self.shuffled_profiles)
         balances = []
-        running_balance = self.player_a_balance - sum(self.all_stages_net_profit)  # back-calculate initial
+        running_balance = self.player_a_balance - sum(self.all_stages_net_payoff)  # back-calculate initial
         for i in range(num_stages):
-            running_balance += self.all_stages_net_profit[i]
+            running_balance += self.all_stages_net_payoff[i]
             balances.append(running_balance)
         return balances

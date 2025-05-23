@@ -89,22 +89,22 @@ def section_1() -> rx.Component:
                     ),
                 ),
             ),
-            # 결정 제출 후 profit/잔고 테이블 표시
+            # 결정 제출 후 payoff/잔고 테이블 표시
             rx.cond(
                 decision_submitted,
                 rx.fragment(
                     rx.center(
                         rx.cond(
-                            TrustGameState.player_b_current_round_profit > 0,
+                            TrustGameState.player_b_current_round_payoff > 0,
                             rx.heading(
-                                f"상대의 순수익은 {TrustGameState.player_b_current_round_profit} 포인트 입니다.",
+                                f"상대의 순수익은 {TrustGameState.player_b_current_round_payoff} 포인트 입니다.",
                                 size="5",
                                 font_weight="bold",
                                 color_scheme="gray",
                                 text_align="center",
                             ),
                             rx.text(
-                                f"상대의 순손실은 {TrustGameState.player_b_current_round_profit} 포인트 입니다.",
+                                f"상대의 순손실은 {TrustGameState.player_b_current_round_payoff} 포인트 입니다.",
                                 size="5",
                                 font_weight="bold",
                                 color_scheme="tomato",
@@ -127,7 +127,7 @@ def section_1() -> rx.Component:
                                     rx.table.cell(rx.text("이번 라운드 순수익", color="#6b7280", size="3")),
                                     rx.table.cell(
                                         rx.text(
-                                            TrustGameState.player_b_current_round_profit,
+                                            TrustGameState.player_b_current_round_payoff,
                                             size="6",
                                             font_weight="bold",
                                             text_align="center",
@@ -135,7 +135,7 @@ def section_1() -> rx.Component:
                                     ),
                                     rx.table.cell(
                                         rx.text(
-                                            TrustGameState.player_a_current_round_profit,
+                                            TrustGameState.player_a_current_round_payoff,
                                             size="6",
                                             # font_weight="bold",
                                             text_align="center",
@@ -190,7 +190,7 @@ def section_1() -> rx.Component:
                 ),
             ),
             rx.divider(),
-            # Profits summary (결정 제출 후에만 보이도록)
+            # payoffs summary (결정 제출 후에만 보이도록)
             spacing="4",
             align_items="stretch",
         ),

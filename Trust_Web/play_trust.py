@@ -211,8 +211,8 @@ def log_transaction(session_id, round_num, player_b_profile, amount_sent, amount
         "amount_sent": amount_sent,
         "amount_returned": amount_returned,
         "message": message,
-        "human_profit": amount_returned - amount_sent if amount_sent > 0 else 0,
-        "ai_profit": (amount_sent * PROLIFERATION_FACTOR) - amount_returned if amount_sent > 0 else 0,
+        "human_payoff": amount_returned - amount_sent if amount_sent > 0 else 0,
+        "ai_payoff": (amount_sent * PROLIFERATION_FACTOR) - amount_returned if amount_sent > 0 else 0,
     }
 
     # Append transaction to file
@@ -276,7 +276,7 @@ def play_round(
         # print(f"Player B received: {amount_sent * 3}")
         # print(f"Player B returned: {amount_returned}")
         print(
-            f"Profits: A) {amount_returned - amount_sent}. B) {(amount_sent * PROLIFERATION_FACTOR) - amount_returned}"
+            f"payoffs: A) {amount_returned - amount_sent}. B) {(amount_sent * PROLIFERATION_FACTOR) - amount_returned}"
         )
     else:
         print("Game ended with no exchange.")
@@ -291,8 +291,8 @@ def play_game(session_id=1):
     player_b_profile = select_random_profile()
 
     history = []
-    total_human_profit = 0
-    total_ai_profit = 0
+    total_human_payoff = 0
+    total_ai_payoff = 0
     human_balance = INITIAL_BALANCE  # Initial balance
 
     for round_num in range(1, NUM_ROUNDS + 1):
@@ -303,17 +303,17 @@ def play_game(session_id=1):
         history.append(round_result)
         human_balance = round_result["new_balance"]  # Update human's balance
 
-        # Update total profits
+        # Update total payoffs
         if round_result["amount_sent"] > 0:
-            total_human_profit += round_result["amount_returned"] - round_result["amount_sent"]
-            total_ai_profit += (round_result["amount_sent"] * PROLIFERATION_FACTOR) - round_result["amount_returned"]
+            total_human_payoff += round_result["amount_returned"] - round_result["amount_sent"]
+            total_ai_payoff += (round_result["amount_sent"] * PROLIFERATION_FACTOR) - round_result["amount_returned"]
 
     # Print final game summary
     print("\n===== GAME SUMMARY =====")
     print(f"Total Rounds: {NUM_ROUNDS}")
     print(f"Your Final Balance: {human_balance}")
-    print(f"Your Total Profit: {total_human_profit}")
-    print(f"Player B's Total Profit: {total_ai_profit}")
+    print(f"Your Total payoff: {total_human_payoff}")
+    print(f"Player B's Total payoff: {total_ai_payoff}")
     print("=" * 50)
 
     return history

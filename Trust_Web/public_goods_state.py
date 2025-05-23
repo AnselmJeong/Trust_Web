@@ -118,7 +118,7 @@ class PublicGoodState(rx.State):
         transaction = {
             "user_id": self.user_id,
             "user_email": self.user_email,
-            "game_name": "public goods game",
+            "game_name": "public_goods_game",
             "game_began_at": self.get_value("game_began_at"),
             "round": self.get_value("current_round") + 1,  # display_round_number와 맞추기 위해 +1
             "human_contribution": self.get_value("human_contribution"),
