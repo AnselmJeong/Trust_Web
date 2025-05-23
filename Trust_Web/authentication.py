@@ -3,6 +3,8 @@ from .firebase_config import sign_in_with_email_and_password, create_user_with_e
 from .questionnaire_state import QuestionnaireState
 from .demographic_state import DemographicState
 from .trust_game_state import TrustGameState
+from .public_goods_state import PublicGoodState
+# from .components.results import ResultsState # Removed this line
 
 # from .questionnaire_state import QuestionnaireState # Removed
 # from .trust_game_state import TrustGameState  # Needed for TrustGameState.reset_game_state event # Removed
@@ -65,6 +67,9 @@ class AuthState(rx.State):
                 AuthState.close_login_modal,
                 QuestionnaireState.set_user_identity(self.user_id, self.user_email),
                 DemographicState.set_user_identity(self.user_id, self.user_email),
+                TrustGameState.set_user_identity(self.user_id, self.user_email),
+                PublicGoodState.set_user_identity(self.user_id, self.user_email),
+                # ResultsState.set_user_identity(self.user_id), # Removed this line
                 rx.redirect("/app/demography"),
             ]
         except Exception as e:

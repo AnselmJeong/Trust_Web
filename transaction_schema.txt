@@ -1,48 +1,32 @@
 
    
-# for public goods, for single round
-   transaction = {
-       "user_id":
-	"user_email":
-	"game_name": "public goods game"
-       "round": round_num,
-       "timestamp": datetime.datetime.now().isoformat(),
-       "human_contribution": human_contribution
-	"computer_contributions": [computer_contributions]
-       "human_payoff": human_payoff
-   }
-   
-	
-	# for section 1, for single round
-    transaction = {
-        "user_id":
-		"user_email":
-		"game_name": "trust game"
-		"section_num": 1,
-        "round": round_num,
-        "timestamp": datetime.datetime.now().isoformat(),
-        "amount_sent": amount_sent,
-        "amount_returned": amount_to_return,
-        "human_profit": amount_sent - amount_to_return,
-        "player_b_profit": amount_to_return - (amount_sent * PROLIFERATION_FACTOR),
-    }
+IDs                  ← top-level Collection
+ └ user_abc123         ← Document (ID: user_abc123)
+    ├ public_goods_game ← Subcollection (game_name)
+    │   └ round_1      ← Document
+    │       └ fields…
+    │   └ round_2 …
+    └ trust_game       ← Subcollection
+        └ section1     ← Document
+            └ stage_0  ← Subcollection
+				└ round_1...  ← Document
+        └ section2     ← Document
+            └ stage_1
+				└ round_1...  ← Document 
+            └ stage_2
+				└ round_1...  ← Document
 	
    
-   # for section 2 for single round
-    transaction = {
-        "user_id":
-		"user_email":
-		"game_name": "trust game"
-		"section_num": section_num
-		"stage_num": 2,
-        "round": round_num,
-        "timestamp": datetime.datetime.now().isoformat(),
-        "player_b_profile": player_b_profile,
-        "amount_sent": amount_sent,
-        "amount_returned": amount_to_return,
-        "message": message,
-        "human_profit": amount_returned - amount_sent,
-        "player_b_profit": (amount_sent * PROLIFERATION_FACTOR) - amount_to_return,
-    }
-	
-	
+IDs                  ← top-level Collection
+ └ user_abc123         ← Document (ID: user_abc123)
+       ├ basic_info ← Subcollection (game_name)
+       │   └ demographic_data      ← Document
+       │       └ fields…
+       └ questionnaire    ← Subcollection
+	           └ UCLA     ← Document
+				   └ fields…
+           	   └ DASS     ← Document
+			       └ fields…
+               └ TRUST     ← Document
+	    		   └ fields…
+			

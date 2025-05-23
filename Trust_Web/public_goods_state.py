@@ -2,7 +2,10 @@ import random
 from typing import List
 import reflex as rx
 from .firebase_db import save_experiment_data
-from Trust_Web.trust_game_state import TrustGameState
+# from Trust_Web.trust_game_state import TrustGameState
+# from Trust_Web.authentication import AuthState
+# from reflex.utils import get_value
+
 
 INITIAL_ENDOWMENT = 100
 MULTIPLIER = 1.5
@@ -34,6 +37,7 @@ class PublicGoodState(rx.State):
     computer_payoffs: List[float] = [0.0] * NUM_COMPUTER_PLAYERS  # Correctly initialized
     game_played: bool = False
     game_finished: bool = False
+    game_began_at: str = ""
 
     @rx.event
     def set_human_contribution(self, value: str) -> None:
@@ -96,18 +100,32 @@ class PublicGoodState(rx.State):
 
         self.game_played = True
 
-        # 실험 데이터 저장
+        # 게임 시작 시점 기록
+        if not self.game_began_at:
+            import datetime
+            self.game_began_at = datetime.datetime.now().isoformat()
+
+        print(f"type of get_value: {type(self.get_value('user_id'))}")
+        print(f"type of get_value: {type(self.get_value('user_email'))}")
+        print(f"type of get_value: {type(self.get_value('game_began_at'))}")
+        print(f"type of get_value: {type(self.get_value('current_round'))}")
+        print(f"type of get_value: {type(self.get_value('human_contribution'))}")
+        print(f"type of get_value: {type(self.get_value('computer_contributions'))}")
+        print(f"type of get_value: {type(self.get_value('human_payoff'))}")
+
+        # user_id = str(AuthState.user_id)
+        # user_email = str(AuthState.user_email)
         transaction = {
-            "user_id": self.user_id if self.user_id else getattr(TrustGameState, "user_id", ""),
-            "user_email": self.user_email if self.user_email else getattr(TrustGameState, "user_email", ""),
+            "user_id": self.user_id,
+            "user_email": self.user_email,
             "game_name": "public goods game",
-            "round": self.current_round + 1,  # display_round_number와 맞추기 위해 +1
-            "timestamp": rx.utils.now().isoformat() if hasattr(rx.utils, "now") else "",
-            "human_contribution": self.human_contribution,
-            "computer_contributions": self.computer_contributions,
-            "human_payoff": self.human_payoff,
+            "game_began_at": self.get_value("game_began_at"),
+            "round": self.get_value("current_round") + 1,  # display_round_number와 맞추기 위해 +1
+            "human_contribution": self.get_value("human_contribution"),
+            "computer_contributions": [self.get_value(c) for c in self.computer_contributions],
+            "human_payoff": self.get_value("human_payoff"),
         }
-        save_experiment_data(transaction["user_id"], transaction)
+        save_experiment_data(self.user_id, transaction)
 
     @rx.event
     def prepare_next_round(self) -> None:
@@ -137,6 +155,13 @@ class PublicGoodState(rx.State):
         self.human_balance = INITIAL_ENDOWMENT
         self.computer_balances = [INITIAL_ENDOWMENT] * NUM_COMPUTER_PLAYERS
         self.game_finished = False
+
+    @rx.event
+    def set_user_identity(self, user_id: str, user_email: str):
+        """Sets the user ID and email for the public goods state."""
+        print(f"[DEBUG] Setting user identity in PublicGoodState: {user_id}, {user_email}")
+        self.user_id = user_id
+        self.user_email = user_email
 
     @rx.var
     def computer_contributions_str(self) -> str:

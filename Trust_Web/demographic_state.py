@@ -30,6 +30,15 @@ class DemographicState(rx.State):
     error_message: str = ""
 
     @rx.event
+    def update_demographics_field(self, field_name: str, value: Any):
+        """Updates a single field in the demographics_data dictionary."""
+        self.demographics_data[field_name] = value
+        # To ensure reactivity, especially if nested, reassign if necessary
+        # For simple key-value updates at the top level, this should be fine.
+        # If issues persist, consider self.demographics_data = self.demographics_data.copy()
+        print(f"[DEMOGRAPHIC_STATE] Updated field '{field_name}' to: {value}")
+
+    @rx.event
     def set_user_identity(self, user_id: str, user_email: str):
         """Sets the user ID and email, then loads existing demographic data."""
         print(f"[DEMOGRAPHIC_STATE] set_user_identity called with: id='{user_id}', email='{user_email}'")
@@ -50,19 +59,10 @@ class DemographicState(rx.State):
         data_with_doc_id = get_user_demographics_data(self.user_id)
         if data_with_doc_id:
             self.demographics_data = data_with_doc_id.get("data", {})
-            self.demographics_doc_id = data_with_doc_id.get("doc_id")
-            print(
-                f"[DEMOGRAPHIC_STATE] Loaded demographics for user {self.user_id}, doc_id: {self.demographics_doc_id}"
-            )
-            # Note: The form UI itself is not automatically updated by loading self.demographics_data here.
-            # If the form fields are directly bound to parts of self.demographics_data (they are not with the current submit-only approach),
-            # they would update. For a submit-only form that gets reset, loading primarily helps in not asking again
-            # or for displaying previous data, which is not the current setup.
-            # If this data needs to pre-fill the form, the form structure would need to change to bind to these values.
+            print(f"[DEMOGRAPHIC_STATE] Loaded demographics for user {self.user_id}, doc_id: {data_with_doc_id.get('doc_id')}")
         else:
             print(f"[DEMOGRAPHIC_STATE] No existing demographic data found for user: {self.user_id}")
             self.demographics_data = {}  # Ensure it's empty if nothing found
-            self.demographics_doc_id = None
 
     @rx.event
     def handle_submit(self, form_data: dict):
@@ -70,32 +70,22 @@ class DemographicState(rx.State):
         print(f"[DEMOGRAPHIC_STATE] handle_submit called. Raw form_data: {form_data}")
         if not self.user_id or not self.user_email:
             self.error_message = "User not properly identified. Cannot save demographics."
-            print(
-                f"[DEMOGRAPHIC_STATE] Error in submit: User ID ('{self.user_id}') or Email ('{self.user_email}') is not set."
-            )
+            print(f"[DEMOGRAPHIC_STATE] Error in submit: User ID ('{self.user_id}') or Email ('{self.user_email}') is not set.")
             return
 
         # Prepare data to save
         self.demographics_data = form_data.copy()  # Start with the submitted form data
-        self.demographics_data["user_id_local"] = self.user_id  # For querying
+        self.demographics_data["user_id"] = self.user_id  # For querying
         self.demographics_data["user_email"] = self.user_email  # Storing the email
-        self.demographics_data["type"] = "demographics_data"  # To distinguish this data type
+        self.demographics_data["game_name"] = "demographics_data"  # For Firestore doc naming
         # 'timestamp' will be added by save_experiment_data using server timestamp
 
         print(f"[DEMOGRAPHIC_STATE] Data being sent to Firebase: {self.demographics_data}")
 
         try:
-            save_experiment_data(
-                user_local_id=self.user_id, data=self.demographics_data, doc_id=self.demographics_doc_id
-            )
+            save_experiment_data(self.user_id, self.demographics_data)
             self.error_message = "Demographics saved successfully!"
             print(f"[DEMOGRAPHIC_STATE] Demographics data saved for user {self.user_id}.")
-            # Potentially clear self.demographics_data if form should be 'empty' for a resubmit, though reset_on_submit handles UI
-            # If we saved a new doc, self.demographics_doc_id might need an update if save_experiment_data returned it.
-            # For now, we assume save_experiment_data handles doc creation/update and doesn't return new ID here.
-            # If it's a first-time save and doc_id was None, after saving, we won't have the new doc_id here
-            # unless save_experiment_data is modified to return it and we capture it.
-            # This is important if the user can resubmit and update the *same* demographics document.
             return rx.redirect("/app/questionnaire")  # Navigate to questionnaire page
         except Exception as e:
             self.error_message = f"Failed to save demographics: {str(e)}"

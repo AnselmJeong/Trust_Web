@@ -88,7 +88,7 @@ class QuestionnaireState(rx.State):
             print(f"[QUESTIONNAIRE_STATE] Fetched data from Firebase: {fetched_data}")
             for q_name, data in fetched_data.items():
                 if q_name in QUESTIONNAIRE_ORDER:
-                    loaded_q_responses = data.get("responses")
+                    loaded_q_responses = data.get("data", {}).get("responses")
                     if (
                         isinstance(loaded_q_responses, list)
                         and q_name in self.responses
@@ -224,7 +224,6 @@ class QuestionnaireState(rx.State):
         """
         Calculates score for current questionnaire, saves/updates it, and navigates to next step.
         """
-        # Removed: from .authentication import AuthState (no longer needed here for this logic)
         print(
             f"[QUESTIONNAIRE_STATE] submit_questionnaire entered. Current self.user_id: '{self.user_id}', self.user_email: '{self.user_email}'"
         )
@@ -239,8 +238,6 @@ class QuestionnaireState(rx.State):
                 f"[QUESTIONNAIRE_STATE] Error in submit: User ID ('{self.user_id}') or Email ('{self.user_email}') is not set."
             )
             return
-
-        # Removed problematic rx.cond assignment to self.error_message and direct AuthState Var usage
 
         if current_q_name not in self._raw_configs:
             self.error_message = f"Questionnaire '{current_q_name}' not found."
@@ -267,17 +264,12 @@ class QuestionnaireState(rx.State):
                 "responses": q_responses,  # These are List[Optional[str]], ensure they are List[str] if needed by schema or handle None
                 "likert_level": q_config.get("likert_level"),
                 "timestamp": datetime.datetime.now().isoformat(),  # Will be overwritten by server timestamp in save_experiment_data
-                "type": "questionnaire_result",
+                "game_name": "questionnaire_result",
             }
-
-            doc_id_to_update = self.response_doc_ids.get(current_q_name)
-            print(
-                f"[QUESTIONNAIRE_STATE] Submitting {current_q_name}. User: {self.user_id}. Doc ID to update: {doc_id_to_update}"
-            )
 
             print(f"[QUESTIONNAIRE_STATE] Data being sent to Firebase: {data_to_save}")
 
-            save_experiment_data(self.user_id, data_to_save, doc_id=doc_id_to_update)
+            save_experiment_data(self.user_id, data_to_save)
             self.error_message = ""  # Clear error on success
 
             # Navigate to next questionnaire or page

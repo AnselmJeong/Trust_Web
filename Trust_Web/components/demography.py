@@ -12,6 +12,7 @@ def create_diagnosis_checkbox(diag_item: str) -> rx.Component:
         name=f"diagnosis_{diag_item}",
         # Set 'checked' prop based on loaded data. Default to False if not found.
         checked=DemographicState.demographics_data.get(f"diagnosis_{diag_item}", False),
+        on_change=lambda checked_value: DemographicState.update_demographics_field(f"diagnosis_{diag_item}", checked_value),
         color_scheme="orange",
     )
 
@@ -38,6 +39,7 @@ def demography_form() -> rx.Component:
                                 name="gender",
                                 # Pre-fill value
                                 value=DemographicState.demographics_data.get("gender", ""),
+                                on_change=lambda value: DemographicState.update_demographics_field("gender", value),
                             ),
                             name="gender_field",
                             style={"margin_bottom": "1em"},
@@ -53,6 +55,7 @@ def demography_form() -> rx.Component:
                                     type_="date",
                                     # Pre-fill value
                                     value=DemographicState.demographics_data.get("birth_date", ""),
+                                    on_change=lambda value: DemographicState.update_demographics_field("birth_date", value),
                                 )
                             ),
                             name="birthdate_field",
@@ -74,6 +77,7 @@ def demography_form() -> rx.Component:
                                 width="160px",
                                 # Pre-fill value
                                 value=DemographicState.demographics_data.get("education_level", ""),
+                                on_change=lambda value: DemographicState.update_demographics_field("education_level", value),
                             ),
                             name="education_level_field",
                             style={"margin_bottom": "1em"},
@@ -87,6 +91,7 @@ def demography_form() -> rx.Component:
                                 name="occupation",
                                 # Pre-fill value
                                 value=DemographicState.demographics_data.get("occupation", ""),
+                                on_change=lambda value: DemographicState.update_demographics_field("occupation", value),
                             ),
                             name="occupation_field",
                             style={"margin_bottom": "1em"},
@@ -110,6 +115,7 @@ def demography_form() -> rx.Component:
                                 name="has_psychiatric_history",
                                 # Pre-fill value
                                 value=DemographicState.demographics_data.get("has_psychiatric_history", ""),
+                                on_change=lambda value: DemographicState.update_demographics_field("has_psychiatric_history", value),
                             ),
                             name="has_psychiatric_history_field",
                             style={"margin_bottom": "1em"},
@@ -141,6 +147,7 @@ def demography_form() -> rx.Component:
                                 width="240px",
                                 # Pre-fill value
                                 value=DemographicState.demographics_data.get("onset_of_diagnosis_details", ""),
+                                on_change=lambda value: DemographicState.update_demographics_field("onset_of_diagnosis_details", value),
                             ),
                             name="onset_of_diagnosis_details_field",
                             style={"margin_bottom": "1em"},
@@ -158,6 +165,7 @@ def demography_form() -> rx.Component:
                                 name="on_psychiatric_medication",
                                 # Pre-fill value
                                 value=DemographicState.demographics_data.get("on_psychiatric_medication", ""),
+                                on_change=lambda value: DemographicState.update_demographics_field("on_psychiatric_medication", value),
                             ),
                             name="on_psychiatric_medication_field",
                             style={"margin_bottom": "1em", "margin_top": "1em"},  # Add margin_top for spacing
@@ -175,6 +183,7 @@ def demography_form() -> rx.Component:
                                 name="in_psychological_counseling",
                                 # Pre-fill value
                                 value=DemographicState.demographics_data.get("in_psychological_counseling", ""),
+                                on_change=lambda value: DemographicState.update_demographics_field("in_psychological_counseling", value),
                             ),
                             name="in_psychological_counseling_field",
                             style={"margin_bottom": "1em"},

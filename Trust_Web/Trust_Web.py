@@ -79,7 +79,7 @@ PAGE_COMPONENT_MAPPING = {
     "section2": section_2(),
     "stage-transition": stage_transition(),
     "final": final_page(),
-    "result": results_page(),
+    "results": results_page(),
 }
 
 

@@ -7,6 +7,8 @@ from typing import List, Dict, Optional, Any, Tuple
 
 import reflex as rx
 from .firebase_db import save_experiment_data
+# from Trust_Web.authentication import AuthState
+# from reflex.utils import get_value
 # from .authentication import AuthState # Removed
 
 NUM_ROUNDS = 3  # test 용으로 원래는 10
@@ -68,12 +70,14 @@ class TrustGameState(rx.State):
     player_b_personality: str = ""
     player_b_profile: Optional[Dict] = None
 
-    user_email: str = ""
-    user_id: str = ""
-
     current_section: str = "section1"  # "section1" or "section2"
 
     is_last_stage: bool = False
+
+    game_began_at: str = ""
+
+    user_id: str = ""
+    user_email: str = ""
 
     @rx.event
     def set_amount_to_return(self, value: str) -> None:
@@ -100,9 +104,10 @@ class TrustGameState(rx.State):
             raise ValueError("Please enter a valid integer value")
 
     @rx.event
-    def set_user_info(self, email: str, user_id: str):
-        self.user_email = email
+    def set_user_identity(self, user_id: str, user_email: str):
+        """Sets the user ID and email for the trust game state."""
         self.user_id = user_id
+        self.user_email = user_email
 
     # ========================== Transaction ==========================
     @rx.event
@@ -130,12 +135,12 @@ class TrustGameState(rx.State):
                     "user_email": self.user_email,
                     "game_name": "trust game",
                     "section_num": 1,
-                    "round": self.current_round,
-                    "timestamp": datetime.datetime.now().isoformat(),
-                    "amount_sent": self.amount_to_send,
-                    "amount_returned": self.amount_to_return,
-                    "human_profit": self.amount_to_send - self.amount_to_return,
-                    "player_b_profit": self.amount_to_return - (self.amount_to_send * PROLIFERATION_FACTOR),
+                    "round": self.get_value("current_round"),
+                    "amount_sent": self.get_value("amount_to_send"),
+                    "amount_returned": self.get_value("amount_to_return"),
+                    "human_profit": self.get_value("amount_to_send") - self.get_value("amount_to_return"),
+                    "player_b_profit": self.get_value("amount_to_return") - (self.get_value("amount_to_send") * PROLIFERATION_FACTOR),
+                    "game_began_at": self.get_value("game_began_at"),
                 }
                 save_experiment_data(self.user_id, transaction)
             # Move to next round or section
@@ -172,12 +177,16 @@ class TrustGameState(rx.State):
     def start_section_1(self) -> None:
         """Mark user as ready to start the experiment section 1 (Player B Trust Game)."""
         print("[DEBUG] Section 1 start")
+        import datetime
+        self.game_began_at = datetime.datetime.now().isoformat()
         return self.proceed_to_section1()
 
     @rx.event
     def start_section_2(self) -> None:
         """Start Section 2 after the transition page."""
         print("[DEBUG] Section 2 start")
+        import datetime
+        self.game_began_at = datetime.datetime.now().isoformat()
         return self.proceed_to_section2()
 
     @rx.event
@@ -192,11 +201,10 @@ class TrustGameState(rx.State):
         Handle Player A's decision submission.
         This function is executed when a human participant plays as player_a in the second section.
         """
-        from .authentication import AuthState
-
         try:
-            # 매번 AuthState에서 값을 복사
-            self.set_user_info(str(AuthState.user_email), str(AuthState.user_id))
+            # 매번 AuthState에서 값을 복사 (지연 import로 circular import 방지)
+            from Trust_Web.authentication import AuthState
+            self.set_user_identity(str(AuthState.user_id), str(AuthState.user_email))
 
             # Calculate Player B's return amount based on the profile
             self.amount_to_return = self.calculate_player_b_return()
@@ -235,15 +243,15 @@ class TrustGameState(rx.State):
                     "user_email": self.user_email,
                     "game_name": "trust game",
                     "section_num": 2,
-                    "stage_num": self.current_stage,
-                    "round": self.current_round,
-                    "timestamp": datetime.datetime.now().isoformat(),
-                    "player_b_profile": self.player_b_profile,
-                    "amount_sent": self.amount_to_send,
-                    "amount_returned": self.amount_to_return,
-                    "message": self.message_b,
+                    "stage_num": self.get_value("current_stage"),
+                    "round": self.get_value("current_round"),
+                    "player_b_profile": self.get_value("player_b_profile"),
+                    "amount_sent": self.get_value("amount_to_send"),
+                    "amount_returned": self.get_value("amount_to_return"),
+                    "message": self.get_value("message_b"),
                     "human_profit": player_a_profit,
                     "player_b_profit": player_b_profit,
+                    "game_began_at": self.get_value("game_began_at"),
                 }
                 save_experiment_data(self.user_id, transaction)
 
