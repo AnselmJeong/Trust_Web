@@ -63,10 +63,14 @@ class TrustGameState(rx.State):
     message_b: str = ""  # 수탁자(player_b)가 투자자에게 보내는 메시지
 
     # Game history
-    round_history: List[Dict] = []  # 현재 stage에서 진행된 모든 round의 데이터를 저장하는 리스트
+    round_history: List[
+        Dict
+    ] = []  # 현재 stage에서 진행된 모든 round의 데이터를 저장하는 리스트
 
     # Player B profiles for section 2
-    shuffled_profiles: List[Tuple[str, Dict]] = []  # List of (personality, profile) tuples
+    shuffled_profiles: List[
+        Tuple[str, Dict]
+    ] = []  # List of (personality, profile) tuples
     player_b_personality: str = ""
     player_b_profile: Optional[Dict] = None
 
@@ -106,6 +110,9 @@ class TrustGameState(rx.State):
     @rx.event
     def set_user_identity(self, user_id: str, user_email: str):
         """Sets the user ID and email for the trust game state."""
+        print(
+            f"[DEBUG] set_user_identity called with: id='{user_id}', email='{user_email}'"
+        )
         self.user_id = user_id
         self.user_email = user_email
 
@@ -123,8 +130,12 @@ class TrustGameState(rx.State):
         This function is executed when a human participant plays as player_b in the first section.
         """
         try:
-            self.player_b_current_round_payoff = self.received_amount - self.amount_to_return
-            self.player_a_current_round_payoff = self.amount_to_return - self.amount_to_send
+            self.player_b_current_round_payoff = (
+                self.received_amount - self.amount_to_return
+            )
+            self.player_a_current_round_payoff = (
+                self.amount_to_return - self.amount_to_send
+            )
             self.player_b_balance += self.player_b_current_round_payoff
             self.player_a_balance += self.player_a_current_round_payoff
             self.is_decision_submitted = True
@@ -144,7 +155,13 @@ class TrustGameState(rx.State):
                     "player_b_balance": self.get_value("player_b_balance"),
                     "game_began_at": self.get_value("game_began_at"),
                 }
-                save_experiment_data(self.user_id, transaction, game_name="trust_game", section_num=1, document_id=f"round_{self.current_round}")
+                save_experiment_data(
+                    self.user_id,
+                    transaction,
+                    game_name="trust_game",
+                    section_num=1,
+                    document_id=f"stage_0_round_{self.current_round}",
+                )
             # Move to next round or section
             # 다음 라운드로 이동은 별도 이벤트(go_to_next_round)에서 처리
             pass
@@ -180,13 +197,15 @@ class TrustGameState(rx.State):
                 # }
                 # # Save summary directly under trust_game collection, not inside section1 subcollection
                 # save_experiment_data(self.user_id, section1_final_data, game_name="trust_game", document_id="section1_summary")
-                
+
                 # # Reset balances for the next section or game phase
                 # self.player_a_balance = INITIAL_BALANCE
-                # self.player_b_balance = 0 
+                # self.player_b_balance = 0
                 self.is_last_stage = False
-                return self.proceed_to_section_transition() # This leads to S2 instructions
-            
+                return (
+                    self.proceed_to_section_transition()
+                )  # This leads to S2 instructions
+
             elif self.current_section == "section2":
                 self.current_stage += 1
                 if self.current_stage == len(self.shuffled_profiles):
@@ -200,6 +219,7 @@ class TrustGameState(rx.State):
         """Mark user as ready to start the experiment section 1 (Player B Trust Game)."""
         print("[DEBUG] Section 1 start")
         import datetime
+
         self.game_began_at = datetime.datetime.now().isoformat()
         return self.proceed_to_section1()
 
@@ -208,13 +228,16 @@ class TrustGameState(rx.State):
         """Start Section 2 after the transition page."""
         print("[DEBUG] Section 2 start")
         import datetime
+
         self.game_began_at = datetime.datetime.now().isoformat()
         return self.proceed_to_section2()
 
     @rx.event
     def select_player_b_profile(self) -> None:
         """Select the Player B profile for the current stage."""
-        self.player_b_personality, self.player_b_profile = self.shuffled_profiles[self.current_stage]
+        self.player_b_personality, self.player_b_profile = self.shuffled_profiles[
+            self.current_stage
+        ]
 
     @rx.event
     def main_algorithm(self) -> None:
@@ -225,8 +248,9 @@ class TrustGameState(rx.State):
         """
         try:
             # 매번 AuthState에서 값을 복사 (지연 import로 circular import 방지)
-            from Trust_Web.authentication import AuthState
-            self.set_user_identity(str(AuthState.user_id), str(AuthState.user_email))
+            # from Trust_Web.authentication import AuthState
+            # self.set_user_identity(str(AuthState.user_id), str(AuthState.user_email))
+            # 위 코드를 제거하고, 이미 self.user_id/self.user_email이 올바르게 세팅되어 있다고 가정
 
             # Calculate Player B's return amount based on the profile
             self.amount_to_return = self.calculate_player_b_return()
@@ -243,8 +267,8 @@ class TrustGameState(rx.State):
 
             # Record round
             round_data: Dict[str, Any] = {
+                "user_id": self.user_id,
                 "user_email": self.user_email,
-                "user_id_field": self.user_id,
                 "stage": self.current_stage,
                 "round": self.current_round,
                 "personality": self.player_b_personality,
@@ -272,12 +296,18 @@ class TrustGameState(rx.State):
                     "amount_returned": self.get_value("amount_to_return"),
                     "message": self.get_value("message_b"),
                     "human_payoff": player_a_payoff,
-                    "human_balance": self.get_value("player_a_balance"),    
+                    "human_balance": self.get_value("player_a_balance"),
                     "player_b_payoff": player_b_payoff,
                     "player_b_balance": self.get_value("player_b_balance"),
                     "game_began_at": self.get_value("game_began_at"),
                 }
-                save_experiment_data(self.user_id, transaction)
+                save_experiment_data(
+                    self.user_id,
+                    transaction,
+                    game_name="trust_game",
+                    section_num=2,
+                    document_id=f"stage_{self.current_stage}_round_{self.current_round}",
+                )
 
             self.is_decision_submitted = True
             # 결과만 보여주고, 라운드/스테이지 이동은 go_to_next_round에서만 처리
@@ -298,7 +328,9 @@ class TrustGameState(rx.State):
         if self.amount_to_send > params["large_investment_cutoff"]:
             loc_value -= params["large_investment_bias"]
 
-        base_return_rate: float = np.random.normal(loc_value, params["fairness_variance"])
+        base_return_rate: float = np.random.normal(
+            loc_value, params["fairness_variance"]
+        )
         base_return: float = self.received_amount * base_return_rate
 
         if self.current_round > NUM_ROUNDS * 0.8:
@@ -394,7 +426,9 @@ class TrustGameState(rx.State):
         profiles = list(PERSONALITY_PROFILES.items())
         random.shuffle(profiles)
         self.shuffled_profiles = profiles
-        print(f"[DEBUG] proceed_to_section2: shuffled_profiles={len(self.shuffled_profiles)}")
+        print(
+            f"[DEBUG] proceed_to_section2: shuffled_profiles={len(self.shuffled_profiles)}"
+        )
         # Initialize first stage (start_next_stage의 stage 초기화 코드 복사)
         self.is_stage_transition = False
         self.current_stage = 0
@@ -422,13 +456,18 @@ class TrustGameState(rx.State):
         return sum(
             r.get("amount_sent", 0)
             for r in self.round_history
-            if r.get("stage") == self.current_stage - 1  # stage_transition is shown after stage increment
+            if r.get("stage")
+            == self.current_stage - 1  # stage_transition is shown after stage increment
         )
 
     @rx.var
     def stage_total_returned(self) -> int:
         # Sum of amount_returned for the current stage
-        return sum(r.get("amount_returned", 0) for r in self.round_history if r.get("stage") == self.current_stage - 1)
+        return sum(
+            r.get("amount_returned", 0)
+            for r in self.round_history
+            if r.get("stage") == self.current_stage - 1
+        )
 
     @rx.var
     def stage_net_payoff(self) -> int:
@@ -452,7 +491,12 @@ class TrustGameState(rx.State):
             return []
         num_stages = len(self.shuffled_profiles)
         return [
-            sum(r.get("amount_sent", 0) for r in self.round_history if r.get("stage") == i) for i in range(num_stages)
+            sum(
+                r.get("amount_sent", 0)
+                for r in self.round_history
+                if r.get("stage") == i
+            )
+            for i in range(num_stages)
         ]
 
     @rx.var
@@ -462,7 +506,11 @@ class TrustGameState(rx.State):
             return []
         num_stages = len(self.shuffled_profiles)
         return [
-            sum(r.get("amount_returned", 0) for r in self.round_history if r.get("stage") == i)
+            sum(
+                r.get("amount_returned", 0)
+                for r in self.round_history
+                if r.get("stage") == i
+            )
             for i in range(num_stages)
         ]
 
@@ -473,7 +521,11 @@ class TrustGameState(rx.State):
             return []
         num_stages = len(self.shuffled_profiles)
         return [
-            sum(r.get("player_a_current_round_payoff", 0) for r in self.round_history if r.get("stage") == i)
+            sum(
+                r.get("player_a_current_round_payoff", 0)
+                for r in self.round_history
+                if r.get("stage") == i
+            )
             for i in range(num_stages)
         ]
 
@@ -484,7 +536,9 @@ class TrustGameState(rx.State):
             return []
         num_stages = len(self.shuffled_profiles)
         balances = []
-        running_balance = self.player_a_balance - sum(self.all_stages_net_payoff)  # back-calculate initial
+        running_balance = self.player_a_balance - sum(
+            self.all_stages_net_payoff
+        )  # back-calculate initial
         for i in range(num_stages):
             running_balance += self.all_stages_net_payoff[i]
             balances.append(running_balance)

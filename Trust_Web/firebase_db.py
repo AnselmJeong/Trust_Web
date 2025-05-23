@@ -2,14 +2,16 @@
 This file is used to configure the Firebase DB, for saving and retrieving
 experiment data.
 """
+
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 from google.cloud import firestore
+
 # from google.cloud.firestore_v1.types import Timestamp # Removed problematic import
-from datetime import datetime # Standard datetime
+from datetime import datetime  # Standard datetime
 from google.oauth2 import service_account
 from dotenv import load_dotenv
-import traceback # For detailed error logging
+import traceback  # For detailed error logging
 # from Trust_Web.firebase_config import app_env # Removed this import as FIREBASE_ENABLED checks are removed
 # from Trust_Web.authentication import AuthState
 
@@ -24,7 +26,9 @@ def init_firebase_client() -> firestore.Client:
     print(credentials_path)
 
     try:
-        credentials = service_account.Credentials.from_service_account_file(credentials_path)
+        credentials = service_account.Credentials.from_service_account_file(
+            credentials_path
+        )
         return firestore.Client(credentials=credentials)
     except Exception as e:
         print(f"Error initializing Firestore: {e}")
@@ -33,6 +37,7 @@ def init_firebase_client() -> firestore.Client:
 
 # Initialize the client
 db = init_firebase_client()
+
 
 # Helper function to convert datetime objects to ISO strings
 # and recursively process nested dicts/lists.
@@ -46,15 +51,37 @@ def _convert_value(value):
         return [_convert_value(item) for item in value]
     return value
 
-# Helper function to process a document snapshot
-def _process_doc_snapshot(doc_snapshot):
-    if doc_snapshot:
-        processed_data = {key: _convert_value(value) for key, value in doc_snapshot.items()}
-    else:
-        processed_data = {}
-    return processed_data
 
-def save_experiment_data(user_id: str, data: dict, game_name: str = None, section_num: int = None, document_id: str = None) -> None:
+# Helper function to process a document snapshot
+# Always returns a dict with 'id' and 'data' keys for compatibility
+def _process_doc_snapshot(doc_snapshot):
+    # If it's a Firestore DocumentSnapshot (has .id and .to_dict())
+    if hasattr(doc_snapshot, "id") and hasattr(doc_snapshot, "to_dict"):
+        data = doc_snapshot.to_dict()
+        processed_data = (
+            {key: _convert_value(value) for key, value in data.items()} if data else {}
+        )
+        return {"id": doc_snapshot.id, "data": processed_data}
+    # If it's already a dict (e.g., from .to_dict()), wrap it
+    elif isinstance(doc_snapshot, dict):
+        processed_data = (
+            {key: _convert_value(value) for key, value in doc_snapshot.items()}
+            if doc_snapshot
+            else {}
+        )
+        return {"id": None, "data": processed_data}
+    # If None or unknown type, return empty
+    else:
+        return {"id": None, "data": {}}
+
+
+def save_experiment_data(
+    user_id: str,
+    data: dict,
+    game_name: str = None,
+    section_num: int = None,
+    document_id: str = None,
+) -> None:
     """
     Saves experiment data to Firestore.
     Can save to a top-level game collection, a subcollection within a game (e.g., 'section1'),
@@ -65,12 +92,14 @@ def save_experiment_data(user_id: str, data: dict, game_name: str = None, sectio
     #     return
     try:
         user_doc_ref = db.collection("IDs").document(user_id)
-        
+
         # Determine the target collection reference
         if game_name:
             game_doc_ref = user_doc_ref.collection(game_name)
-            if game_name == "trust_game" and section_num:
-                target_collection_ref = game_doc_ref.document(f"section{section_num}").collection("rounds")
+            if game_name == "trust_game":
+                target_collection_ref = game_doc_ref.document(
+                    f"section{section_num}"
+                ).collection("rounds")
             else:
                 # If no section_collection, save directly under the game_name collection
                 target_collection_ref = game_doc_ref
@@ -79,7 +108,7 @@ def save_experiment_data(user_id: str, data: dict, game_name: str = None, sectio
             target_collection_ref = user_doc_ref
 
         # Add server timestamp
-        data_to_save = _process_doc_snapshot(data) # Convert datetimes etc.
+        data_to_save = _convert_value(data)  # Just convert datetimes etc.
         data_to_save["saved_at"] = firestore.SERVER_TIMESTAMP
 
         if document_id:
@@ -92,11 +121,16 @@ def save_experiment_data(user_id: str, data: dict, game_name: str = None, sectio
             print(f"[SAVE_EXPERIMENT_DATA] Data saved with auto-ID: {doc_ref[1].path}")
 
     except Exception as e:
-        print(f"Error saving experiment data for user {user_id}, game {game_name}, section {section_num}, doc {document_id}: {e}")
+        print(
+            f"Error saving experiment data for user {user_id}, game {game_name}, section {section_num}, doc {document_id}: {e}"
+        )
         # Optionally, re-raise the exception or handle it as per application's error handling policy
         # raise
 
-def get_user_experiment_data(user_id: str, game_name: str, section_num: int = 1) -> list:
+
+def get_user_experiment_data(
+    user_id: str, game_name: str, section_num: int = 1
+) -> list:
     """
     Fetches all experiment data for a specific game for a given user.
     For 'trust_game', it fetches section 1 summary and its rounds.
@@ -108,55 +142,83 @@ def get_user_experiment_data(user_id: str, game_name: str, section_num: int = 1)
         data_list = []
 
         if game_name == "public_goods_game":
-            game_collection_ref = db.collection("IDs").document(user_id).collection("public_goods_game")
+            game_collection_ref = (
+                db.collection("IDs").document(user_id).collection("public_goods_game")
+            )
             docs = game_collection_ref.stream()
             for doc in docs:
-                processed_doc = _process_doc_snapshot(doc.to_dict())
-                data_list.append({"id": doc.id, "data": processed_doc})
-            print(f"[GET_USER_EXPERIMENT_DATA] Fetched {len(data_list)} documents for {game_name} for user {user_id}")
-        
+                processed_doc = _process_doc_snapshot(doc)
+                data_list.append(processed_doc)
+            print(
+                f"[GET_USER_EXPERIMENT_DATA] Fetched {len(data_list)} documents for {game_name} for user {user_id}"
+            )
+
         elif game_name == "trust_game":
-            game_collection_ref = db.collection("IDs").document(user_id).collection("trust_game")
+            game_collection_ref = (
+                db.collection("IDs").document(user_id).collection("trust_game")
+            )
             if section_num == 1:
-                rounds_collection_ref = game_collection_ref.document("section1").collection("rounds")
+                rounds_collection_ref = game_collection_ref.document(
+                    "section1"
+                ).collection("rounds")
                 round_docs = rounds_collection_ref.stream()
                 for doc in round_docs:
-                    processed_doc = _convert_value(doc.to_dict())
-                    data_list.append({"id": doc.id, "data": processed_doc})
+                    processed_doc = _process_doc_snapshot(doc)
+                    data_list.append(processed_doc)
             elif section_num == 2:
-                rounds_collection_ref = game_collection_ref.document("section2").collection("rounds")
+                rounds_collection_ref = game_collection_ref.document(
+                    "section2"
+                ).collection("rounds")
                 round_docs = rounds_collection_ref.stream()
                 for doc in round_docs:
-                    processed_doc = _convert_value(doc.to_dict())
-                    data_list.append({"id": doc.id, "data": processed_doc})
-            print(f"[GET_USER_EXPERIMENT_DATA] Fetched {len(data_list)} documents for {game_name} {section_num} for user {user_id}")
-    
+                    processed_doc = _process_doc_snapshot(doc)
+                    data_list.append(processed_doc)
+            print(
+                f"[GET_USER_EXPERIMENT_DATA] Fetched {len(data_list)} documents for {game_name} {section_num} for user {user_id}"
+            )
+
         else:
             # Generic fetch for other game types or data (e.g., questionnaires, demographics)
             # This assumes these are stored directly as documents in a collection named game_name
             # under the user's ID.
-            top_level_collection_ref = db.collection("IDs").document(user_id).collection(game_name)
+            top_level_collection_ref = (
+                db.collection("IDs").document(user_id).collection(game_name)
+            )
             docs = top_level_collection_ref.stream()
             for doc in docs:
-                processed_doc = _process_doc_snapshot(doc.to_dict())
-                data_list.append({"id": doc.id, "data": processed_doc})
-            if not data_list: # Check if still empty, maybe it's a single document not a collection
-                doc_ref = db.collection("IDs").document(user_id).get() # this path is wrong, should be IDs/user_id/game_name (document)
-                if doc_ref and game_name in doc_ref.to_dict():
-                     processed_doc = _process_doc_snapshot(doc_ref.to_dict()[game_name]) # this is also probably wrong
-                     data_list.append({"id": game_name, "data": processed_doc})
+                processed_doc = _process_doc_snapshot(doc)
+                data_list.append(processed_doc)
+            if (
+                not data_list
+            ):  # Check if still empty, maybe it's a single document not a collection
+                doc_ref = (
+                    db.collection("IDs")
+                    .document(user_id)
+                    .collection(game_name)
+                    .document(game_name)
+                    .get()
+                )
+                if doc_ref and doc_ref.exists:
+                    processed_doc = _process_doc_snapshot(doc_ref)
+                    data_list.append(processed_doc)
 
-            print(f"[GET_USER_EXPERIMENT_DATA] Fetched {len(data_list)} documents for generic game/data type '{game_name}' for user {user_id}")
-
+            print(
+                f"[GET_USER_EXPERIMENT_DATA] Fetched {len(data_list)} documents for generic game/data type '{game_name}' for user {user_id}"
+            )
 
         if not data_list:
-            print(f"[GET_USER_EXPERIMENT_DATA] No data found for user {user_id}, game_name: {game_name}")
-        
+            print(
+                f"[GET_USER_EXPERIMENT_DATA] No data found for user {user_id}, game_name: {game_name}"
+            )
+
         return data_list
 
     except Exception as e:
-        print(f"Error fetching experiment data for user {user_id}, game {game_name}: {e}")
+        print(
+            f"Error fetching experiment data for user {user_id}, game {game_name}: {e}"
+        )
         return [{"error_fetching": str(e)}]
+
 
 def get_user_questionnaire_responses(user_id: str) -> Dict[str, Dict[str, Any]]:
     """Fetches all questionnaire responses for a user from their new structure."""
@@ -164,21 +226,24 @@ def get_user_questionnaire_responses(user_id: str) -> Dict[str, Dict[str, Any]]:
         if not user_id:
             print("User ID not provided, cannot fetch questionnaire responses.")
             return {}
-        
+
         user_doc_ref = db.collection("IDs").document(user_id)
         subcol = user_doc_ref.collection("questionnaire")
         docs = subcol.stream()
         responses = {}
         for doc in docs:
-            processed_doc = _process_doc_snapshot(doc) # Process for timestamps
+            processed_doc = _process_doc_snapshot(doc)
             if processed_doc and processed_doc["data"]:
                 q_name = processed_doc["id"]
                 responses[q_name] = {"doc_id": q_name, "data": processed_doc["data"]}
-        print(f"Fetched questionnaire responses for user {user_id}: {list(responses.keys())}")
+        print(
+            f"Fetched questionnaire responses for user {user_id}: {list(responses.keys())}"
+        )
         return responses
     except Exception as e:
         print(f"Error fetching questionnaire responses for user {user_id}: {e}")
         return {}
+
 
 # def get_experiment_statistics() -> Dict[str, Any]:
 #     """Get aggregated statistics for all experiment data from all user collections."""
@@ -190,7 +255,7 @@ def get_user_questionnaire_responses(user_id: str) -> Dict[str, Dict[str, Any]]:
 #             # with the new recursive get_user_experiment_data unless we specifically parse paths.
 #         }
 #         user_ids_with_data = set()
-        
+
 #         ids_collection_ref = db.collection("IDs")
 #         for user_doc_snapshot in ids_collection_ref.stream(): # Iterate through all user docs in IDs collection
 #             user_id = user_doc_snapshot.id
@@ -207,10 +272,10 @@ def get_user_questionnaire_responses(user_id: str) -> Dict[str, Dict[str, Any]]:
 #                     # This is a rough estimate of documents, not a full recursive count for stats.
 #                     # stats["total_documents_processed"] += len(list(subcollection_ref.stream())) # Potentially expensive
 #                     pass # Add more detailed counting if necessary for specific stats
-            
+
 #             if user_has_data:
 #                 user_ids_with_data.add(user_id)
-        
+
 #         stats["distinct_users_with_data"] = len(user_ids_with_data)
 #         # To get total_documents, a full recursive scan like in get_user_experiment_data would be needed per user,
 #         # or a distributed counter if performance is critical for very large datasets.
@@ -222,6 +287,7 @@ def get_user_questionnaire_responses(user_id: str) -> Dict[str, Dict[str, Any]]:
 #         print(traceback.format_exc())
 #         raise
 
+
 def get_user_demographics_data(user_id: str) -> Optional[Dict[str, Any]]:
     """Fetches the demographic data for a user from their new structure."""
     try:
@@ -231,17 +297,20 @@ def get_user_demographics_data(user_id: str) -> Optional[Dict[str, Any]]:
         user_doc_ref = db.collection("IDs").document(user_id)
         subcol = user_doc_ref.collection("basic_info")
         doc_snapshot = subcol.document("demographic_data").get()
-        
-        processed_doc = _process_doc_snapshot(doc_snapshot) # Process for timestamps
+
+        processed_doc = _process_doc_snapshot(doc_snapshot)  # Process for timestamps
         if processed_doc and processed_doc["data"]:
-            print(f"Fetched demographic data for user {user_id}, doc_id: {processed_doc['id']}")
+            print(
+                f"Fetched demographic data for user {user_id}, doc_id: {processed_doc['id']}"
+            )
             return {"doc_id": processed_doc["id"], "data": processed_doc["data"]}
-        
+
         print(f"No demographic data found for user {user_id} or data was empty.")
         return None
     except Exception as e:
         print(f"Error fetching demographic data for user {user_id}: {e}")
         return None
+
 
 def get_all_user_data_for_export(user_id: str) -> dict:
     pass
