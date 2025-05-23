@@ -1,5 +1,5 @@
 import reflex as rx
-from .common_styles import page_container, section_heading, primary_button, COLORS
+from .common_styles import page_container, section_heading, primary_button, COLORS, STYLES # Added STYLES
 from ..authentication import AuthState
 
 # New color palette inspired by the provided image
@@ -145,7 +145,7 @@ def landing_page() -> rx.Component:
             spacing="3",
         ),
         bg=IMAGE_THEME_YELLOW,  # Added distinct background color for highlight
-        border_radius="xl",
+        border_radius=STYLES["card"]["border_radius"], # Changed to use common style
         padding=["1.5rem", "2rem", "2.5rem"],
         margin_x=["1rem", "1.5rem", "2rem"],
         margin_y=["2rem", "2.5rem", "3rem"],

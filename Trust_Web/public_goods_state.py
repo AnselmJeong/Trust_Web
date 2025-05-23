@@ -2,9 +2,9 @@ import random
 from typing import List
 import reflex as rx
 from .firebase_db import save_experiment_data
-# from Trust_Web.trust_game_state import TrustGameState
-# from Trust_Web.authentication import AuthState
-# from reflex.utils import get_value
+# from Trust_Web.trust_game_state import TrustGameState # Unused
+# from Trust_Web.authentication import AuthState # Unused
+# from reflex.utils import get_value # Unused
 
 
 INITIAL_ENDOWMENT = 100
@@ -105,27 +105,41 @@ class PublicGoodState(rx.State):
             import datetime
             self.game_began_at = datetime.datetime.now().isoformat()
 
-        print(f"type of get_value: {type(self.get_value('user_id'))}")
-        print(f"type of get_value: {type(self.get_value('user_email'))}")
-        print(f"type of get_value: {type(self.get_value('game_began_at'))}")
-        print(f"type of get_value: {type(self.get_value('current_round'))}")
-        print(f"type of get_value: {type(self.get_value('human_contribution'))}")
-        print(f"type of get_value: {type(self.get_value('computer_contributions'))}")
-        print(f"type of get_value: {type(self.get_value('human_payoff'))}")
+        # Removed debug print statements for get_value
+        # print(f"type of get_value: {type(self.get_value('user_id'))}")
+        # print(f"type of get_value: {type(self.get_value('user_email'))}")
+        # print(f"type of get_value: {type(self.get_value('game_began_at'))}")
+        # print(f"type of get_value: {type(self.get_value('current_round'))}")
+        # print(f"type of get_value: {type(self.get_value('human_contribution'))}")
+        # print(f"type of get_value: {type(self.get_value('computer_contributions'))}")
+        # print(f"type of get_value: {type(self.get_value('human_payoff'))}")
 
-        # user_id = str(AuthState.user_id)
-        # user_email = str(AuthState.user_email)
+        # user_id = str(AuthState.user_id) # Already commented out
+        # user_email = str(AuthState.user_email) # Already commented out
         transaction = {
             "user_id": self.user_id,
             "user_email": self.user_email,
-            "game_name": "public_goods_game",
-            "game_began_at": self.get_value("game_began_at"),
-            "round": self.get_value("current_round") + 1,  # display_round_number와 맞추기 위해 +1
-            "human_contribution": self.get_value("human_contribution"),
-            "computer_contributions": [self.get_value(c) for c in self.computer_contributions],
-            "human_payoff": self.get_value("human_payoff"),
+            "game_name": "public_goods_game", # This can be kept or added by a potential helper in firebase_db
+            "game_began_at": self.game_began_at,
+            "round": self.current_round + 1,  # display_round_number와 맞추기 위해 +1
+            "human_contribution": self.human_contribution,
+            "computer_contributions": self.computer_contributions, # Use the list directly
+            "human_payoff": self.human_payoff,
         }
-        save_experiment_data(self.user_id, transaction)
+        # The save_experiment_data function in firebase_db.py expects (user_id, game_name, data, ...)
+        # The transaction dict already contains user_id and game_name, but save_experiment_data
+        # also takes them as top-level arguments.
+        # For consistency with how save_experiment_data is structured, we pass game_name explicitly.
+        # The data dict passed to save_experiment_data should ideally not contain user_id, game_name if they are already explicit params.
+        # However, the current save_experiment_data in firebase_db.py doesn't remove them from 'data'.
+        # For now, I'll keep the existing structure of save_experiment_data call.
+        data_for_db = transaction.copy() 
+        # It's good practice for the 'data' dict not to duplicate info passed as separate args to save_experiment_data.
+        # However, to minimize changes if save_experiment_data relies on these fields in `data`,
+        # I'll leave them for now, but ideally they would be removed from the dict sent to firebase if already params.
+        # For this refactor, only get_value is changed.
+        save_experiment_data(user_id=self.user_id, game_name="public_goods_game", data=data_for_db)
+
 
     @rx.event
     def prepare_next_round(self) -> None:
@@ -191,3 +205,20 @@ class PublicGoodState(rx.State):
     def human_payoff_str(self) -> str:
         """Return the human payoff formatted to 0 decimal places."""
         return f"{self.human_payoff:.0f}"
+
+    @rx.event_handler("auth.logout_event")
+    def handle_logout_event(self):
+        """Handles the logout event emitted by AuthState."""
+        print("[PublicGoodState] Received logout event. Resetting game.")
+        self.reset_game() # Call existing reset method
+
+    @rx.event_handler("auth.set_user_identity")
+    def handle_set_user_identity(self, payload: dict):
+        """Handles the set_user_identity event emitted by AuthState."""
+        user_id = payload.get("user_id")
+        user_email = payload.get("user_email")
+        if user_id is not None and user_email is not None:
+            print(f"[PublicGoodState] Received set_user_identity event. User ID: {user_id}, Email: {user_email}")
+            self.set_user_identity(user_id, user_email) # Call existing method
+        else:
+            print("[PublicGoodState] Error: Received set_user_identity event with missing user_id or user_email.")

@@ -2,6 +2,8 @@ import reflex as rx
 
 # from Trust_Web.trust_game_state import TrustGameState # Removed
 from .authentication import AuthState  # Changed to direct relative import
+from .components.common_styles import COLORS, STYLES # Added import
+from Trust_Web.components.login_form import login_form # Added direct import
 
 
 def layout(content: rx.Component) -> rx.Component:
@@ -105,8 +107,8 @@ def layout(content: rx.Component) -> rx.Component:
             ),
             width="100%",
             padding="1em",
-            bg="#fefaef",
-            box_shadow="0 4px 16px 0 rgba(0,0,0,0.12)",
+            bg=COLORS["white"], # Changed to COLORS["white"]
+            style=STYLES["header_shadow"], # Added header_shadow style
             position="relative",
             z_index=1,
         ),
@@ -141,7 +143,7 @@ def layout(content: rx.Component) -> rx.Component:
                         )
                     ),
                     # login_form() is here
-                    __import__("Trust_Web.components.login_form", fromlist=["login_form"]).login_form(),
+                    login_form(), # Changed to direct call
                     # Removed the old close button from the bottom
                     # rx.dialog.close(
                     #     rx.button("닫기", on_click=AuthState.close_login_modal, style={"marginTop": "1em"})
@@ -152,7 +154,7 @@ def layout(content: rx.Component) -> rx.Component:
                         "minWidth": "400px",
                         "maxWidth": "400px",
                         "position": "relative",  # Needed for absolute positioning of the close button
-                        "bg": "#fefaef",  # Added requested background color
+                        "bg": COLORS["white"],  # Changed to COLORS["white"]
                     },
                 ),
                 open=AuthState.show_login_modal,
@@ -176,7 +178,7 @@ def layout(content: rx.Component) -> rx.Component:
             padding="1.5em 0 1em 0",
             border_top=None,
             # color_scheme="gray",
-            bg="#64748b",
+            bg=COLORS["footer_bg"], # Changed to COLORS["footer_bg"]
             # border_radius="0 0 2em 2em",
         ),
         width="100%",

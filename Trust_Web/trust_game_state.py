@@ -144,23 +144,22 @@ class TrustGameState(rx.State):
                 transaction = {
                     "user_id": self.user_id,
                     "user_email": self.user_email,
-                    "game_name": "trust_game",
-                    "section_num": 1,
-                    "round": self.get_value("current_round"),
-                    "amount_sent": self.get_value("amount_to_send"),
-                    "amount_returned": self.get_value("amount_to_return"),
-                    "player_a_payoff": self.get_value("player_a_current_round_payoff"),
-                    "player_a_balance": self.get_value("player_a_balance"),
-                    "player_b_payoff": self.get_value("player_b_current_round_payoff"),
-                    "player_b_balance": self.get_value("player_b_balance"),
-                    "game_began_at": self.get_value("game_began_at"),
+                    # "game_name": "trust_game", # Added by helper
+                    # "section_num": 1, # Added by helper
+                    "round": self.current_round,
+                    "amount_sent": self.amount_to_send,
+                    "amount_returned": self.amount_to_return,
+                    "player_a_payoff": self.player_a_current_round_payoff,
+                    "player_a_balance": self.player_a_balance,
+                    "player_b_payoff": self.player_b_current_round_payoff,
+                    "player_b_balance": self.player_b_balance,
+                    "game_began_at": self.game_began_at,
                 }
-                save_experiment_data(
-                    self.user_id,
-                    transaction,
-                    game_name="trust_game",
+                self._save_trust_game_round_data(
                     section_num=1,
-                    document_id=f"stage_0_round_{self.current_round}",
+                    stage_num=0, # Section 1 can be considered stage 0
+                    round_num=self.current_round,
+                    transaction_data=transaction
                 )
             # Move to next round or section
             # 다음 라운드로 이동은 별도 이벤트(go_to_next_round)에서 처리
@@ -168,48 +167,46 @@ class TrustGameState(rx.State):
         except ValueError:
             pass
 
+    def _reset_round_variables(self):
+        """Resets variables at the beginning of each round."""
+        self.is_decision_submitted = False
+        self.amount_to_return = 0
+        self.player_a_current_round_payoff = 0
+        self.player_b_current_round_payoff = 0
+        # self.message_b = "" # Reset message if applicable, currently seems to be set by AI in S2
+
+    def _reset_stage_variables(self):
+        """Resets variables for a new stage (applies to Section 2)."""
+        self._reset_round_variables()
+        self.current_round = 1
+        self.amount_to_send = 0 # Player A starts with 0 to send
+        self.player_b_balance = 0 # Opponent's balance resets per stage
+        # self.round_history = [] # Round history is for the entire section 2, not per stage
+
+    def _reset_section_balances(self):
+        """Resets player balances for a new section."""
+        self.player_a_balance = INITIAL_BALANCE # Human player's balance
+        self.player_b_balance = 0 # Opponent's balance (for Player B in S1, or AI in S2)
+
     @rx.event
     def go_to_next_round(self) -> None:
-        self.is_decision_submitted = False
+        self._reset_round_variables()
         if self.current_round < NUM_ROUNDS:
             self.current_round += 1
-            self.simulate_player_a_decision()
-            self.amount_to_return = 0
-            self.player_a_current_round_payoff = 0
-            self.player_b_current_round_payoff = 0
-        else:
-            self.current_round = 1
-            self.player_a_current_round_payoff = 0
-            self.player_b_current_round_payoff = 0
+            if self.current_section == "section1":
+                self.simulate_player_a_decision() # Player A (AI) makes a decision
+        else: # End of rounds for the current stage/section
+            self.current_round = 1 # Reset for next stage/section logic, though _reset_stage_variables does it too
 
             if self.current_section == "section1":
-                # # Save final balances for Section 1
-                # section1_final_data = {
-                #     "user_id": self.user_id,
-                #     "user_email": self.user_email,
-                #     "game_name": "trust_game",
-                #     "section_num": 1,
-                #     "document_type": "section_summary",
-                #     "s1_user_final_balance": self.player_b_balance,  # User is Player B in Section 1
-                #     "s1_opponent_final_balance": self.player_a_balance, # Opponent is Player A in Section 1
-                #     "game_began_at": self.game_began_at,
-                #     "section_ended_at": datetime.datetime.now().isoformat(),
-                # }
-                # # Save summary directly under trust_game collection, not inside section1 subcollection
-                # save_experiment_data(self.user_id, section1_final_data, game_name="trust_game", document_id="section1_summary")
-
-                # # Reset balances for the next section or game phase
-                # self.player_a_balance = INITIAL_BALANCE
-                # self.player_b_balance = 0
-                self.is_last_stage = False
-                return (
-                    self.proceed_to_section_transition()
-                )  # This leads to S2 instructions
-
+                self.is_last_stage = False # Not applicable directly, but good for consistency
+                return self.proceed_to_section_transition()
             elif self.current_section == "section2":
                 self.current_stage += 1
-                if self.current_stage == len(self.shuffled_profiles):
+                if self.current_stage >= len(self.shuffled_profiles): # Use >= for safety
                     self.is_last_stage = True
+                    # Potentially redirect to a final summary or results page for section 2
+                    # For now, proceed_to_stage_transition will handle the last stage by showing summary
                 else:
                     self.is_last_stage = False
                 return self.proceed_to_stage_transition()
@@ -287,26 +284,26 @@ class TrustGameState(rx.State):
                 transaction = {
                     "user_id": self.user_id,
                     "user_email": self.user_email,
-                    "game_name": "trust_game",
-                    "section_num": 2,
-                    "stage_num": self.get_value("current_stage"),
-                    "round": self.get_value("current_round"),
-                    "player_b_profile": self.get_value("player_b_profile"),
-                    "amount_sent": self.get_value("amount_to_send"),
-                    "amount_returned": self.get_value("amount_to_return"),
-                    "message": self.get_value("message_b"),
-                    "human_payoff": player_a_payoff,
-                    "human_balance": self.get_value("player_a_balance"),
-                    "player_b_payoff": player_b_payoff,
-                    "player_b_balance": self.get_value("player_b_balance"),
-                    "game_began_at": self.get_value("game_began_at"),
+                    # "game_name": "trust_game", # Added by helper
+                    # "section_num": 2, # Added by helper
+                    "stage_num": self.current_stage,
+                    "round": self.current_round,
+                    "player_b_profile_name": self.player_b_personality, # Save profile name
+                    "player_b_profile_details": self.player_b_profile, # Save full profile
+                    "amount_sent": self.amount_to_send,
+                    "amount_returned": self.amount_to_return,
+                    "message": self.message_b, # AI message to human
+                    "human_payoff": player_a_payoff, # Player A is human in S2
+                    "human_balance": self.player_a_balance,
+                    "player_b_payoff": player_b_payoff, # Player B is AI in S2
+                    "player_b_balance": self.player_b_balance,
+                    "game_began_at": self.game_began_at,
                 }
-                save_experiment_data(
-                    self.user_id,
-                    transaction,
-                    game_name="trust_game",
+                self._save_trust_game_round_data(
                     section_num=2,
-                    document_id=f"stage_{self.current_stage}_round_{self.current_round}",
+                    stage_num=self.current_stage,
+                    round_num=self.current_round,
+                    transaction_data=transaction
                 )
 
             self.is_decision_submitted = True
@@ -339,36 +336,47 @@ class TrustGameState(rx.State):
         max_return: int = self.received_amount
         return min(max(0, round(base_return)), max_return)
 
+    def _save_trust_game_round_data(self, section_num: int, stage_num: int, round_num: int, transaction_data: Dict[str, Any]):
+        """Helper function to save trust game round data."""
+        # Common data to be added by this helper if not already in transaction_data by caller
+        # However, current transaction_data seems complete enough.
+        # transaction_data["game_name"] = "trust_game" # Already handled by save_experiment_data's game_name param
+        # transaction_data["section_num"] = section_num # Already handled by save_experiment_data's section_num param
+
+        document_id = f"stage_{stage_num}_round_{round_num}"
+        
+        save_experiment_data(
+            user_id=self.user_id, # Assumes self.user_id is set
+            game_name="trust_game", # Explicitly "trust_game"
+            data=transaction_data,
+            section_num=section_num,
+            document_id=document_id,
+        )
+
     @rx.event
     def start_next_stage(self) -> None:
-        self.is_decision_submitted = False
+        self._reset_stage_variables() # Resets round vars, current_round, amount_to_send, player_b_balance
         self.is_stage_transition = False
-        self.current_round = 1
-        self.amount_to_send = 0
-        self.player_a_current_round_payoff = 0
-        self.player_b_current_round_payoff = 0
-        self.player_b_balance = 0
+        # self.player_a_balance is preserved across stages in a section
         self.select_player_b_profile()
         return rx.redirect("/app/section2")
 
     @rx.event
     def reset_game_state(self) -> None:
-        self.is_decision_submitted = False
+        self._reset_stage_variables() # Resets most per-round/stage vars
+        self._reset_section_balances() # Resets player_a_balance to initial, player_b_balance to 0
+        
         self.is_last_stage = False
         print("[TRUST_GAME_STATE] reset_game_state called")
-        self.current_round = 1
         self.current_stage = 0
-        self.is_ready = False
+        self.is_ready = False # Should be set true when a section begins
         self.is_stage_transition = False
-        self.amount_to_send = 0
-        self.amount_to_return = 0
-        self.player_a_balance = INITIAL_BALANCE
-        self.player_b_balance = 0
-        self.player_a_current_round_payoff = 0
-        self.player_b_current_round_payoff = 0
-        self.round_history = []
+        self.round_history = [] # Clear history for a full reset
         self.shuffled_profiles = []
         self.player_b_profile = None
+        self.player_b_personality = ""
+        self.current_section = "section1" # Default to section1 on full reset
+        self.game_began_at = ""
 
     @rx.var
     def received_amount(self) -> int:
@@ -399,29 +407,34 @@ class TrustGameState(rx.State):
     @rx.event
     def proceed_to_section1(self):
         self.current_section = "section1"
-        self.is_decision_submitted = False
+        self._reset_section_balances() # Resets player_a_balance to INITIAL_BALANCE, player_b_balance to 0
+        self._reset_stage_variables() # Resets round vars, current_round to 1, amount_to_send to 0
+                                      # player_b_balance is already 0 from _reset_section_balances
         self.is_ready = True
-        self.player_a_balance = INITIAL_BALANCE
-        self.player_b_balance = 0  # Player B starts with 0 balance in section 1
-        self.current_round = 1
-        self.player_a_current_round_payoff = 0
-        self.player_b_current_round_payoff = 0
-        self.simulate_player_a_decision()
-        self.is_last_stage = False
+        self.simulate_player_a_decision() # AI (Player A) makes a decision
+        self.is_last_stage = False # Not applicable to section 1 structure
+        self.round_history = [] # Clear history for section 1
         return rx.redirect("/app/section1")
 
     @rx.event
     def proceed_to_section_transition(self):
-        """Navigate to section transition page."""
-        # self.current_round = 1
-        # self.player_a_current_round_payoff = 0
-        # self.player_b_current_round_payoff = 0
+        """Navigate to section transition page (instructions for section 2)."""
+        # No specific state changes here usually, just navigation.
+        # Balances are reset when section 2 actually starts.
         return rx.redirect("/app/instructions?game=section2")
 
     @rx.event
     def proceed_to_section2(self):
         self.current_section = "section2"
-        self.is_decision_submitted = False
+        self._reset_section_balances() # Human (Player A) balance reset, AI (Player B) balance to 0
+        self._reset_stage_variables()  # Resets round vars, current_round to 1, amount_to_send to 0 etc.
+        
+        self.is_ready = True # Mark as ready for section 2
+        self.current_stage = 0 # Start from the first AI opponent
+        self.is_stage_transition = False
+        self.is_last_stage = False
+        self.round_history = [] # Clear history for section 2
+
         # Shuffle the profiles and store them
         profiles = list(PERSONALITY_PROFILES.items())
         random.shuffle(profiles)
@@ -429,25 +442,19 @@ class TrustGameState(rx.State):
         print(
             f"[DEBUG] proceed_to_section2: shuffled_profiles={len(self.shuffled_profiles)}"
         )
-        # Initialize first stage (start_next_stage의 stage 초기화 코드 복사)
-        self.is_stage_transition = False
-        self.current_stage = 0
-        self.current_round = 1
-        self.amount_to_send = 0
-        self.player_a_current_round_payoff = 0
-        self.player_b_current_round_payoff = 0
-        self.player_b_balance = 0
-        self.round_history = []
-        self.select_player_b_profile()
-        self.player_a_balance = INITIAL_BALANCE
-        self.amount_to_return = 0
-        self.is_last_stage = False
+        if not self.shuffled_profiles: # Handle case of no profiles
+             print("[ERROR] No personality profiles loaded or available for Section 2.")
+             # Optionally, redirect to an error page or handle differently
+             return rx.redirect("/") # Fallback redirect
+        
+        self.select_player_b_profile() # Select the first AI profile
         return rx.redirect("/app/section2")
 
     @rx.event
     def proceed_to_stage_transition(self):
-        """Navigate to stage transition page."""
-        self.is_stage_transition = True
+        """Navigate to stage transition page (between AI opponents in Section 2)."""
+        self.is_stage_transition = True # Flag to show the transition UI
+        # State for the next stage (e.g. opponent balance) is reset when start_next_stage is called
         return rx.redirect("/app/stage-transition")
 
     @rx.var
@@ -543,3 +550,20 @@ class TrustGameState(rx.State):
             running_balance += self.all_stages_net_payoff[i]
             balances.append(running_balance)
         return balances
+
+    @rx.event_handler("auth.logout_event")
+    def handle_logout_event(self):
+        """Handles the logout event emitted by AuthState."""
+        print("[TrustGameState] Received logout event. Resetting game state.")
+        self.reset_game_state() # Call existing reset method
+
+    @rx.event_handler("auth.set_user_identity")
+    def handle_set_user_identity(self, payload: dict):
+        """Handles the set_user_identity event emitted by AuthState."""
+        user_id = payload.get("user_id")
+        user_email = payload.get("user_email")
+        if user_id is not None and user_email is not None:
+            print(f"[TrustGameState] Received set_user_identity event. User ID: {user_id}, Email: {user_email}")
+            self.set_user_identity(user_id, user_email) # Call existing method
+        else:
+            print("[TrustGameState] Error: Received set_user_identity event with missing user_id or user_email.")

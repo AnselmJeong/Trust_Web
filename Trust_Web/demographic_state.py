@@ -129,6 +129,19 @@ class DemographicState(rx.State):
 
     # Removed submit_demographics as it's replaced by handle_submit
 
+    # Event handler for auth.set_user_identity
+    @rx.event_handler("auth.set_user_identity")
+    def handle_set_user_identity(self, payload: dict):
+        """Handles the set_user_identity event emitted by AuthState."""
+        user_id = payload.get("user_id")
+        user_email = payload.get("user_email")
+        if user_id is not None and user_email is not None:
+            print(f"[DemographicState] Received set_user_identity event. User ID: {user_id}, Email: {user_email}")
+            # Call the existing set_user_identity method which also handles loading data
+            self.set_user_identity(user_id, user_email)
+        else:
+            print("[DemographicState] Error: Received set_user_identity event with missing user_id or user_email.")
+
 
 # Example of how to display the submitted data (could be on another page or part of the UI)
 # def display_submitted_data() -> rx.Component:
