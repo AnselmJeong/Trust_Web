@@ -390,3 +390,16 @@ class InstructionState(rx.State):
         else:
             self.error_message = "No game rules loaded."
             print(self.error_message)
+
+    # Event handler for auth.set_user_identity
+    @rx.event_handler("auth.set_user_identity")
+    def handle_set_user_identity(self, payload: dict):
+        """Handles the set_user_identity event emitted by AuthState."""
+        user_id = payload.get("user_id")
+        user_email = payload.get("user_email")
+        if user_id is not None and user_email is not None:
+            print(f"[QuestionnaireState] Received set_user_identity event. User ID: {user_id}, Email: {user_email}")
+            # Call the existing set_user_identity method which also handles loading data
+            self.set_user_identity(user_id, user_email)
+        else:
+            print("[QuestionnaireState] Error: Received set_user_identity event with missing user_id or user_email.")

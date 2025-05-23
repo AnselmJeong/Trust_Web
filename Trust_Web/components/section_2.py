@@ -1,40 +1,32 @@
 import reflex as rx
 from Trust_Web.trust_game_state import TrustGameState, NUM_ROUNDS
-from .common_styles import COLORS, STYLES, primary_button
+from .common_styles import COLORS, STYLES, primary_button # Removed unused COLORS
 from .stage_transition import stage_transition
+from .ui_helpers import GameSectionCard # Import the new component
 
 
 def section_2() -> rx.Component:
-    """Section 2 component styled to match section_1, with stage info."""
+    """Section 2 component, refactored to use GameSectionCard."""
     balance = TrustGameState.player_a_balance
     max_send = TrustGameState.max_send_amount
     round_str = TrustGameState.round_str
-    stage_str = f"Stage {TrustGameState.current_stage + 1} / 4"
+    # Assuming shuffled_profiles is populated and its length is the total number of stages.
+    # If TrustGameState.shuffled_profiles can be empty, add a check or ensure it's always populated before this page.
+    total_stages = TrustGameState.shuffled_profiles.length() # Access length of Var[List]
+    stage_info_text = rx.text(
+        f" 상대 {TrustGameState.current_stage + 1} / {total_stages} - {round_str}",
+        color_scheme="gray",
+        font_weight="bold"
+    )
+    
     decision_submitted = (
         TrustGameState.is_decision_submitted if hasattr(TrustGameState, "is_decision_submitted") else False
     )
-    section_content = rx.vstack(
-        # Header: Icon, Title, Stage, Round info
-        rx.hstack(
-            rx.icon(tag="user", mr=2),
-            rx.heading("신뢰 게임 (수탁자 역할)", size="7"),
-            rx.spacer(),
-            rx.text(stage_str, color_scheme="gray", font_weight="bold", mr="2"),
-            rx.text(round_str, color_scheme="gray", font_weight="bold"),
-            justify="between",
-            align_items="center",
-            width="100%",
-        ),
-        rx.progress(
-            value=TrustGameState.current_round,
-            max=NUM_ROUNDS,
-            width="100%",
-            color_scheme="orange",
-            height="sm",
-            border_radius="md",
-        ),
+
+    # Content for the GameSectionCard
+    game_content = [
         rx.text(
-            "당신은 수탁자입니다. 수신자에게 얼마를 투자할지 결정하세요.",
+            "당신은 투자자입니다. 상대방(수탁자)에게 얼마를 투자할지 결정하세요.", # Changed text to reflect Player A role
             size="3",
             color_scheme="gray",
         ),
@@ -45,7 +37,7 @@ def section_2() -> rx.Component:
                 rx.center(
                     rx.vstack(
                         rx.text("현재 잔고", size="2", color_scheme="gray"),
-                        rx.heading(balance, size="8", style={"color": "#374151"}),
+                        rx.heading(balance, size="8", style={"color": STYLES["text"] if "text" in STYLES else "#374151"}), # Use common style if available
                         align_items="center",
                         text_align="center",
                     ),
@@ -78,7 +70,7 @@ def section_2() -> rx.Component:
                         align_items="center",
                         flex_grow=1,
                         text_align="center",
-                        style={"background": "#f9fafb", "borderRadius": "8px", "padding": "12px 0"},
+                        style={"background": COLORS.get("background_light", "#f9fafb"), "borderRadius": "8px", "padding": "12px 0"},
                     ),
                     rx.vstack(
                         rx.text("돌려받은 금액", size="2", color_scheme="gray"),
@@ -92,7 +84,7 @@ def section_2() -> rx.Component:
                         align_items="center",
                         flex_grow=1,
                         text_align="center",
-                        style={"background": "#f3f4f6", "borderRadius": "8px", "padding": "12px 0"},
+                        style={"background": COLORS.get("background", "#f3f4f6"), "borderRadius": "8px", "padding": "12px 0"},
                     ),
                     justify="between",
                     width="100%",
@@ -180,35 +172,40 @@ def section_2() -> rx.Component:
                 "결정 제출",
                 on_click=TrustGameState.main_algorithm,
             ),
-            rx.button(
+            # Assuming plum_button is available or use rx.button with custom style
+            rx.button( # Fallback to rx.button if plum_button is not defined or imported
                 "다음 라운드로 넘어갑니다",
                 width="100%",
                 size="3",
                 on_click=[
                     TrustGameState.go_to_next_round,
-                    # rx.set_value("amount_input_s2", ""),
-                    # rx.set_focus("amount_input_s2"),
                 ],
-                color_scheme="plum",
+                color_scheme="plum", # Keep original styling if plum_button not used
             ),
         ),
-        spacing="4",
-        align_items="stretch",
+    ]
+
+    # The main structure using GameSectionCard
+    section_card_content = GameSectionCard(
+        title="신뢰 게임 (투자자 역할)", # Corrected title for Player A
+        icon_name="user", # Or "users"
+        header_extras=stage_info_text,
+        progress_value=TrustGameState.current_round,
+        progress_max=NUM_ROUNDS,
+        *game_content, # Unpack the list of children
+        # Apply the specific styling from the old rx.box to this GameSectionCard instance
+        style={
+            "background": "white",
+            "borderRadius": "12px",
+            "boxShadow": "0 2px 8px 0 rgba(0,0,0,0.07)",
+            "padding": "32px", # Simplified padding, adjust if specific top/bottom needed
+            "maxWidth": "600px", # Already default in GameSectionCard but explicit here
+            "width": "100%",
+        }
     )
+
     return rx.cond(
         TrustGameState.is_stage_transition,
         stage_transition(),
-        rx.center(
-            rx.box(
-                section_content,
-                style={
-                    "background": "white",
-                    "borderRadius": "12px",
-                    "boxShadow": "0 2px 8px 0 rgba(0,0,0,0.07)",
-                    "padding": "32px 32px 16px 32px",
-                    "maxWidth": "600px",
-                    "width": "100%",
-                },
-            ),
-        ),
+        rx.center(section_card_content), # Center the GameSectionCard
     )
