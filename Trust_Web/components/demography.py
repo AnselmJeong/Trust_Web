@@ -12,7 +12,9 @@ def create_diagnosis_checkbox(diag_item: str) -> rx.Component:
         name=f"diagnosis_{diag_item}",
         # Set 'checked' prop based on loaded data. Default to False if not found.
         checked=DemographicState.demographics_data.get(f"diagnosis_{diag_item}", False),
-        on_change=lambda checked_value: DemographicState.update_demographics_field(f"diagnosis_{diag_item}", checked_value),
+        on_change=lambda checked_value: DemographicState.update_demographics_field(
+            f"diagnosis_{diag_item}", checked_value
+        ),
         color_scheme="orange",
     )
 
@@ -21,14 +23,19 @@ def demography_form() -> rx.Component:
     return rx.center(  # Center the entire form container
         rx.form(
             rx.vstack(
-                rx.heading("인구학적 정보와 정신과적 과거력", size="7", margin_bottom="1em"),
+                rx.heading(
+                    "인구학적 정보와 정신과적 과거력", size="7", margin_bottom="1em"
+                ),
                 rx.divider(margin_bottom="1em"),
                 rx.grid(
                     # Column 1
                     rx.vstack(
                         # 성별 (Gender)
                         rx.form.field(
-                            rx.form.label(rx.text("⚤ 성별", size="4"), style={"margin_bottom": "0.5em"}),
+                            rx.form.label(
+                                rx.text("⚤ 성별", size="4"),
+                                style={"margin_bottom": "0.5em"},
+                            ),
                             rx.radio_group.root(
                                 rx.hstack(
                                     rx.radio_group.item("남성", value="male"),
@@ -38,15 +45,22 @@ def demography_form() -> rx.Component:
                                 color_scheme="orange",
                                 name="gender",
                                 # Pre-fill value
-                                value=DemographicState.demographics_data.get("gender", ""),
-                                on_change=lambda value: DemographicState.update_demographics_field("gender", value),
+                                value=DemographicState.demographics_data.get(
+                                    "gender", ""
+                                ),
+                                on_change=lambda value: DemographicState.update_demographics_field(
+                                    "gender", value
+                                ),
                             ),
                             name="gender_field",
                             style={"margin_bottom": "1em"},
                         ),
                         # 생년월일 (birth date - personal)
                         rx.form.field(
-                            rx.form.label(rx.text("📅 생년월일", size="4"), style={"margin_bottom": "0.5em"}),
+                            rx.form.label(
+                                rx.text("📅 생년월일", size="4"),
+                                style={"margin_bottom": "0.5em"},
+                            ),
                             rx.hstack(
                                 rx.input(
                                     placeholder="YYYY-MM-DD",
@@ -54,8 +68,12 @@ def demography_form() -> rx.Component:
                                     width="160px",
                                     type_="date",
                                     # Pre-fill value
-                                    value=DemographicState.demographics_data.get("birth_date", ""),
-                                    on_change=lambda value: DemographicState.update_demographics_field("birth_date", value),
+                                    value=DemographicState.demographics_data.get(
+                                        "birth_date", ""
+                                    ),
+                                    on_change=lambda value: DemographicState.update_demographics_field(
+                                        "birth_date", value
+                                    ),
                                 )
                             ),
                             name="birthdate_field",
@@ -63,7 +81,10 @@ def demography_form() -> rx.Component:
                         ),
                         # 학력 (Education)
                         rx.form.field(
-                            rx.form.label(rx.text("🎓 학력", size="4"), style={"margin_bottom": "0.5em"}),
+                            rx.form.label(
+                                rx.text("🎓 학력", size="4"),
+                                style={"margin_bottom": "0.5em"},
+                            ),
                             rx.select(
                                 [
                                     "고등학교 졸업 이하",
@@ -76,22 +97,41 @@ def demography_form() -> rx.Component:
                                 name="education_level",
                                 width="160px",
                                 # Pre-fill value
-                                value=DemographicState.demographics_data.get("education_level", ""),
-                                on_change=lambda value: DemographicState.update_demographics_field("education_level", value),
+                                value=DemographicState.demographics_data.get(
+                                    "education_level", ""
+                                ),
+                                on_change=lambda value: DemographicState.update_demographics_field(
+                                    "education_level", value
+                                ),
                             ),
                             name="education_level_field",
                             style={"margin_bottom": "1em"},
                         ),
                         # 직업 (Occupation)
                         rx.form.field(
-                            rx.form.label(rx.text("💼 직업", size="4"), style={"margin_bottom": "0.5em"}),
+                            rx.form.label(
+                                rx.text("💼 직업", size="4"),
+                                style={"margin_bottom": "0.5em"},
+                            ),
                             rx.select(
-                                ["학생", "직장인", "자영업자", "전문직", "주부", "무직", "기타"],
+                                [
+                                    "학생",
+                                    "직장인",
+                                    "자영업자",
+                                    "전문직",
+                                    "주부",
+                                    "무직",
+                                    "기타",
+                                ],
                                 placeholder="선택하세요",
                                 name="occupation",
                                 # Pre-fill value
-                                value=DemographicState.demographics_data.get("occupation", ""),
-                                on_change=lambda value: DemographicState.update_demographics_field("occupation", value),
+                                value=DemographicState.demographics_data.get(
+                                    "occupation", ""
+                                ),
+                                on_change=lambda value: DemographicState.update_demographics_field(
+                                    "occupation", value
+                                ),
                             ),
                             name="occupation_field",
                             style={"margin_bottom": "1em"},
@@ -104,7 +144,10 @@ def demography_form() -> rx.Component:
                     rx.vstack(
                         # 정신과 병력 (Psychiatric History)
                         rx.form.field(
-                            rx.form.label(rx.text("🧠 정신과 병력", size="4"), style={"margin_bottom": "0.5em"}),
+                            rx.form.label(
+                                rx.text("🧠 정신과 병력", size="4"),
+                                style={"margin_bottom": "0.5em"},
+                            ),
                             rx.radio_group.root(
                                 rx.hstack(
                                     rx.radio_group.item("없음", value="no"),
@@ -114,8 +157,12 @@ def demography_form() -> rx.Component:
                                 color_scheme="orange",
                                 name="has_psychiatric_history",
                                 # Pre-fill value
-                                value=DemographicState.demographics_data.get("has_psychiatric_history", ""),
-                                on_change=lambda value: DemographicState.update_demographics_field("has_psychiatric_history", value),
+                                value=DemographicState.demographics_data.get(
+                                    "has_psychiatric_history", ""
+                                ),
+                                on_change=lambda value: DemographicState.update_demographics_field(
+                                    "has_psychiatric_history", value
+                                ),
                             ),
                             name="has_psychiatric_history_field",
                             style={"margin_bottom": "1em"},
@@ -123,10 +170,16 @@ def demography_form() -> rx.Component:
                         # 과거 진단명 (Past Diagnoses)
                         # create_diagnosis_checkbox is now updated to handle pre-fill
                         rx.form.field(
-                            rx.form.label(rx.text("🩺 과거 진단명", size="4"), style={"margin_bottom": "0.5em"}),
+                            rx.form.label(
+                                rx.text("🩺 과거 진단명", size="4"),
+                                style={"margin_bottom": "0.5em"},
+                            ),
                             rx.vstack(
                                 rx.grid(
-                                    rx.foreach(DemographicState.diagnosis_options, create_diagnosis_checkbox),
+                                    rx.foreach(
+                                        DemographicState.diagnosis_options,
+                                        create_diagnosis_checkbox,
+                                    ),
                                     columns="2",
                                     spacing="2",
                                     width="100%",
@@ -139,22 +192,30 @@ def demography_form() -> rx.Component:
                         # 발병시기 (Onset of illness - diagnosis related)
                         rx.form.field(
                             rx.form.label(
-                                rx.text("📅 발병시기 (진단 관련)", size="4"), style={"margin_bottom": "0.5em"}
+                                rx.text("📅 발병시기 (진단 관련)", size="4"),
+                                style={"margin_bottom": "0.5em"},
                             ),
                             rx.input(
                                 placeholder="예: 우울증 3년전, 공황장애 1년 6개월전",
                                 name="onset_of_diagnosis_details",
                                 width="240px",
                                 # Pre-fill value
-                                value=DemographicState.demographics_data.get("onset_of_diagnosis_details", ""),
-                                on_change=lambda value: DemographicState.update_demographics_field("onset_of_diagnosis_details", value),
+                                value=DemographicState.demographics_data.get(
+                                    "onset_of_diagnosis_details", ""
+                                ),
+                                on_change=lambda value: DemographicState.update_demographics_field(
+                                    "onset_of_diagnosis_details", value
+                                ),
                             ),
                             name="onset_of_diagnosis_details_field",
                             style={"margin_bottom": "1em"},
                         ),
                         # 정신과 약물 복용중 (Moved here)
                         rx.form.field(
-                            rx.form.label(rx.text("💊 정신과 약물 복용중", size="4"), style={"margin_bottom": "0.5em"}),
+                            rx.form.label(
+                                rx.text("💊 정신과 약물 복용중", size="4"),
+                                style={"margin_bottom": "0.5em"},
+                            ),
                             rx.radio_group.root(
                                 rx.hstack(
                                     rx.radio_group.item("네", value="yes"),
@@ -164,15 +225,25 @@ def demography_form() -> rx.Component:
                                 color_scheme="orange",
                                 name="on_psychiatric_medication",
                                 # Pre-fill value
-                                value=DemographicState.demographics_data.get("on_psychiatric_medication", ""),
-                                on_change=lambda value: DemographicState.update_demographics_field("on_psychiatric_medication", value),
+                                value=DemographicState.demographics_data.get(
+                                    "on_psychiatric_medication", ""
+                                ),
+                                on_change=lambda value: DemographicState.update_demographics_field(
+                                    "on_psychiatric_medication", value
+                                ),
                             ),
                             name="on_psychiatric_medication_field",
-                            style={"margin_bottom": "1em", "margin_top": "1em"},  # Add margin_top for spacing
+                            style={
+                                "margin_bottom": "1em",
+                                "margin_top": "1em",
+                            },  # Add margin_top for spacing
                         ),
                         # 심리상담중 (Moved here)
                         rx.form.field(
-                            rx.form.label(rx.text("💬 심리상담중", size="4"), style={"margin_bottom": "0.5em"}),
+                            rx.form.label(
+                                rx.text("💬 심리상담중", size="4"),
+                                style={"margin_bottom": "0.5em"},
+                            ),
                             rx.radio_group.root(
                                 rx.hstack(
                                     rx.radio_group.item("네", value="yes"),
@@ -182,8 +253,12 @@ def demography_form() -> rx.Component:
                                 color_scheme="orange",
                                 name="in_psychological_counseling",
                                 # Pre-fill value
-                                value=DemographicState.demographics_data.get("in_psychological_counseling", ""),
-                                on_change=lambda value: DemographicState.update_demographics_field("in_psychological_counseling", value),
+                                value=DemographicState.demographics_data.get(
+                                    "in_psychological_counseling", ""
+                                ),
+                                on_change=lambda value: DemographicState.update_demographics_field(
+                                    "in_psychological_counseling", value
+                                ),
                             ),
                             name="in_psychological_counseling_field",
                             style={"margin_bottom": "1em"},
@@ -198,7 +273,13 @@ def demography_form() -> rx.Component:
                 # Removed the separate grid for medication/counseling sections
                 rx.center(
                     rx.form.submit(
-                        primary_button("제출", margin_top="2em", type_="submit", width="160px", color_scheme="orange")
+                        primary_button(
+                            "제출",
+                            margin_top="2em",
+                            type_="submit",
+                            width="160px",
+                            color_scheme="orange",
+                        )
                     ),
                     width="100%",
                 ),
